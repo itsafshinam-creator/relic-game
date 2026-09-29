@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>RELIC — The Lost World | Telegram Alpha 0.1</title>
+<title>RELIC — The Lost World | Founder Build 1.0</title>
 <style>
 :root{--glass:rgba(10,16,18,.72);--line:rgba(255,255,255,.12);--gold:#e9c46a;--red:#e76f51;--green:#78c091}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}html,body{margin:0;width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:#182421;color:#fff;font-family:Inter,system-ui,Arial,sans-serif;touch-action:none}
@@ -23,14 +23,36 @@ canvas{position:fixed;inset:0;display:block;touch-action:none}
 .toast.show{opacity:1}
 #menu{display:none;position:fixed;inset:0;z-index:30;place-items:center;background:#0008;pointer-events:auto}.modal{width:min(92vw,520px);max-height:82vh;overflow:auto;padding:18px}.modal h2{margin:0 0 12px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
 #joy{display:none;position:absolute;left:22px;bottom:34px;width:116px;height:116px;border-radius:50%;background:#ffffff10;border:1px solid #ffffff22;pointer-events:auto}.stick{position:absolute;width:54px;height:54px;left:31px;top:31px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff35}
-.touchbtn{display:none;position:absolute;width:62px;height:62px;border-radius:50%;background:#ffffff16;border:1px solid #ffffff30;color:#fff;font-size:23px;font-weight:900;pointer-events:auto}.attack{right:24px;bottom:42px}.dodge{right:98px;bottom:112px}.interact{right:24px;bottom:120px;width:52px;height:52px;font-size:17px}
+.touchbtn{display:none;position:absolute;width:62px;height:62px;border-radius:50%;background:#ffffff16;border:1px solid #ffffff30;color:#fff;font-size:23px;font-weight:900;pointer-events:auto}.attack{right:24px;bottom:42px}.dodge{right:98px;bottom:112px}.interact{right:24px;bottom:120px;width:52px;height:52px;font-size:17px}.potion{right:90px;bottom:45px;width:52px;height:52px;font-size:18px}
 @media (max-width:800px),(pointer:coarse){.quest{width:48vw}.actions .btn{padding:8px 9px}.help{display:none}#joy,.touchbtn{display:block}}
 @media (max-width:520px){.stats{min-width:170px}.quest{position:absolute;top:66px;right:0;width:68vw}.actions{top:150px}.actions .btn{font-size:11px}.stats .nums{font-size:10px}}
+
+/* ---------- Founder Build 1.0 polish ---------- */
+.zone{padding:8px 11px;min-width:145px;text-align:right;margin-left:auto}
+.zone span{display:block;font-size:11px;font-weight:900;letter-spacing:1.5px;color:var(--gold)}
+.zone small{display:block;font-size:9px;opacity:.55;margin-top:2px}
+#minimap{position:absolute;right:14px;bottom:64px;width:118px;height:118px;border-radius:50%;overflow:hidden;background:
+ radial-gradient(circle,#344b43 0 2px,transparent 3px),
+ linear-gradient(135deg,#1a2825,#263b34);opacity:.9}
+#minimap:before{content:"";position:absolute;inset:9px;border:1px solid #ffffff22;border-radius:50%}
+#mapPlayer{position:absolute;width:8px;height:8px;border-radius:50%;background:#e9c46a;box-shadow:0 0 9px #e9c46a;left:55px;top:55px;transform:translate(-50%,-50%);z-index:2}
+.mapGate{position:absolute;width:9px;height:9px;border-radius:2px;background:#e76f51;left:54px;top:13px;box-shadow:0 0 8px #e76f51}
+.mapCamp{position:absolute;width:8px;height:8px;border-radius:50%;background:#78c091;left:54px;bottom:15px}
+#bossbar{display:none;position:absolute;left:50%;top:80px;transform:translateX(-50%);width:min(440px,62vw);padding:8px 12px;text-align:center}
+.bossname{font-size:10px;font-weight:900;letter-spacing:2px;color:#ffb29f;margin-bottom:5px}
+.bossmeter{height:8px;background:#241719;border-radius:8px;overflow:hidden}
+.bossmeter b{display:block;height:100%;width:100%;background:#d9574a;transition:width .15s}
+@media(max-width:520px){
+ #minimap{width:92px;height:92px;bottom:58px;right:10px}
+ #mapPlayer{left:43px;top:43px}.mapGate{left:42px}.mapCamp{left:42px}
+ #bossbar{top:214px;width:78vw}
+ .zone{display:none}
+}
 </style>
 </head>
 <body>
 <div id="loading"><div class="loadbox">
-  <div class="logo">RELIC</div><div class="sub">THE LOST WORLD · TELEGRAM ALPHA 0.1</div>
+  <div class="logo">RELIC</div><div class="sub">THE LOST WORLD · FOUNDER BUILD 1.0</div>
   <div class="bar"><i></i></div><div id="loadtxt">Initializing world…</div>
   <div id="error"></div>
 </div></div>
@@ -47,12 +69,17 @@ canvas{position:fixed;inset:0;display:block;touch-action:none}
     <div class="panel quest"><strong id="qtitle">THE FIRST RELIC</strong><p id="qtext">Speak with Mara at the Outpost.</p></div>
   </div>
   <div class="actions"><button class="btn" id="inv">🎒 Inventory</button><button class="btn" id="fog">🌫 Fog</button><button class="btn" id="reset">↻ Reset</button></div>
-  <div class="bottom"><div class="panel help">WASD / arrows · mouse drag · E interact · Space attack · Shift dodge · I inventory</div></div>
+  <div class="bottom">
+      <div class="panel help">WASD / arrows · drag camera · E interact · Space attack · Shift dodge · I inventory</div>
+      <div class="panel zone"><span id="zoneName">THE WILD</span><small id="zoneSub">Explore the forgotten frontier</small></div>
+    </div>
+    <div id="minimap" class="panel"><div id="mapPlayer"></div><div class="mapGate"></div><div class="mapCamp"></div></div>
+    <div id="bossbar" class="panel"><div class="bossname">DUNGEON GUARDIAN</div><div class="bossmeter"><b id="bosshp"></b></div></div>
   <div id="toast" class="toast"></div>
   <div id="joy"><div class="stick"></div></div>
   <button class="touchbtn attack" id="attack">⚔</button>
   <button class="touchbtn dodge" id="dodge">↗</button>
-  <button class="touchbtn interact" id="interact">E</button>
+  <button class="touchbtn interact" id="interact">E</button><button class="touchbtn potion" id="potion">🧪</button>
 </div>
 
 <div id="menu"><div class="panel modal">
@@ -63,7 +90,10 @@ canvas{position:fixed;inset:0;display:block;touch-action:none}
   <div class="row"><span>💠 Relic Shards</span><b id="ishards">0</b></div>
   <div class="row"><span>🪙 Gold</span><b id="igold">0</b></div>
   <div class="row"><span>⚔ Weapon</span><b id="iweapon">Seeker Blade</b></div>
-  <p style="opacity:.7;font-size:12px">Alpha economy only. No real-money or blockchain transactions are connected.</p>
+    <div class="row"><span>🛡 Armor</span><b id="iarmor">Wanderer Gear</b></div>
+    <div class="row"><span>✨ Relic Power</span><b id="ipower">0</b></div>
+    <div class="row"><span>📜 Discoveries</span><b id="idiscoveries">0</b></div>
+  <p style="opacity:.7;font-size:12px">Founder Build 1.0. Economy is still off-chain/local. No real-money or blockchain transactions are connected.</p>
   <button class="btn" id="close">Close</button>
 </div></div>
 
@@ -150,11 +180,14 @@ function start(TG){
     hp:100,xp:0,lvl:1,atk:12,gold:120,shards:0,wood:0,iron:0,crystal:0,
     // quest: 0 talk Mara, 1 gather, 2 reach gate, 3 kill guardian, 4 return to Mara, 5 done
     quest:0,questProgress:0,fog:true,dead:false,invOpen:false,dungeon:false,
-    weapon:'Seeker Blade',saveKey:'relic_tg_alpha_02'
+    weapon:'Seeker Blade',saveKey:'relic_tg_founder_10'
   };
-  const save=()=>{try{localStorage.setItem(state.saveKey,JSON.stringify({...state,invOpen:false,dead:false}))}catch(e){}};
+  const save=()=>{try{
+      localStorage.setItem(state.saveKey,JSON.stringify({...state,invOpen:false,dead:false,discovered:[...discovered]}))
+    }catch(e){}};
   const load=()=>{try{const x=JSON.parse(localStorage.getItem(state.saveKey)||'null'); if(x) Object.assign(state,x); state.dead=false;state.invOpen=false;state.dungeon=false;state.hp=Math.max(1,state.hp)}catch(e){}};
   load();
+  state.armor=state.armor||'Wanderer Gear';state.relicPower=state.relicPower||0;state.discoveries=state.discoveries||0;state.kills=state.kills||0;state.potions=state.potions||2;
   scene.fog.density=.018;
 
   // shared materials/geometries (performance fix for mobile)
@@ -221,6 +254,24 @@ function start(TG){
   resource('wood',-8,-8);resource('wood',-12,-2);resource('wood',8,-4);resource('wood',14,-14);
   resource('iron',-18,-10);resource('iron',-22,-1);resource('iron',12,-10);
   resource('crystal',-27,-35);resource('crystal',-35,-40);resource('crystal',18,-35);
+  // Hidden discoveries: reaching these locations permanently records the find.
+  const discoverySpots=[
+    {id:'old_shrine',name:'Old Shrine',x:30,z:-24},
+    {id:'broken_watch',name:'Broken Watchtower',x:-38,z:-18},
+    {id:'river_stone',name:'River Stone',x:-47,z:28}
+  ];
+  const discoveryMeshes=[];
+  for(const d of discoverySpots){
+    const m=new THREE.Mesh(new THREE.TorusGeometry(.48,.08,7,18),mat(0xc6a85a));
+    m.position.set(d.x,.35,d.z);m.rotation.x=Math.PI/2;m.userData.discovery=d;scene.add(m);discoveryMeshes.push(m);
+  }
+  const potionSpots=[{x:17,z:-20},{x:-19,z:-29}];
+  const potionMeshes=[];
+  for(const p of potionSpots){
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.42,8),mat(0x8a4f74));
+    m.position.set(p.x,.3,p.z);m.userData.potion=true;scene.add(m);potionMeshes.push(m);
+  }
+
 
   // Dungeon
   const dungeon=new THREE.Group(); dungeon.position.set(0,0,-72); scene.add(dungeon);
@@ -248,8 +299,9 @@ function start(TG){
   addEventListener('keydown',e=>{
     const k=e.key.toLowerCase();keys[k]=true;
     if(e.key===' '){e.preventDefault();attack()}
-    if(k==='e')interact();
+    if(k==='e'||k==='f')interact();
     if(k==='i')toggleInv();
+    if(k==='q')usePotion();
     if(e.key==='Shift')dodge();
   });
   addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
@@ -264,22 +316,39 @@ function start(TG){
   addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);
 
   function attack(){
-    if(attackLock>0||state.dead)return;attackLock=.45;
-    sword.rotation.x=-1.0;
+    if(attackLock>0||state.dead)return;attackLock=.42;
+    sword.rotation.x=-1.25;
+    let hits=0;
     for(const e of enemies){
       if(e.userData.dead||!e.visible)continue;
       const d=hero.position.distanceTo(e.position);
-      if(d<3.2){
+      if(d<3.35){
         const to=e.position.clone().sub(hero.position).setY(0).normalize();
-        if(face.dot(to)>-.1){e.userData.hp-=state.atk;toast('Hit! -'+state.atk);if(e.userData.hp<=0)kill(e)}
+        if(face.dot(to)>-.15){
+          const crit=Math.random()<.12;
+          const dmg=state.atk*(crit?1.8:1);
+          e.userData.hp-=dmg; hits++;
+          toast((crit?'CRITICAL! ':'')+'-'+Math.round(dmg));
+          if(e.userData.hp<=0)kill(e);
+        }
       }
     }
+    if(!hits) toast('Miss');
   }
   function kill(e){
     const boss=e.userData.type==='boss';
     e.userData.dead=true;e.visible=false;state.xp+=boss?100:25;state.gold+=boss?150:15;
-    if(boss){state.shards+=3;state.quest=Math.max(state.quest,4);toast('GUARDIAN DEFEATED — 3 Relic Shards');}
-    else toast('Enemy defeated +XP');
+    if(boss){
+      state.shards+=3;state.relicPower+=10;state.quest=Math.max(state.quest,4);
+      state.atk+=6;toast('GUARDIAN DEFEATED · +3 Shards · +10 Relic Power · +6 ATK');
+    }
+    else {
+      state.kills++;
+      const drop=Math.random();
+      if(drop<.35){state.gold+=20;toast('Enemy defeated · +XP · +20 Gold');}
+      else if(drop<.55){state.shards+=1;toast('Enemy defeated · +XP · +1 Relic Shard');}
+      else toast('Enemy defeated · +XP');
+    }
     levelCheck();save();
   }
   function levelCheck(){
@@ -306,7 +375,7 @@ function start(TG){
     if(near.userData.npc){
       if(near.userData.name==='Mara'){
         if(state.quest===0){state.quest=1;toast('Mara: Gather 3 Wood and 2 Iron.');}
-        else if(state.quest===4){state.quest=5;state.gold+=250;toast('Mara: You found the First Relic. +250 Gold');}
+        else if(state.quest===4){state.quest=5;state.gold+=250;state.relicPower+=5;toast('Mara: You found the First Relic. +250 Gold · +5 Relic Power');}
         else if(state.quest>=5)toast('Mara: More lands await in the next alpha.');
         else toast('Mara: Keep going, Seeker.');
       } else {
@@ -316,6 +385,10 @@ function start(TG){
         else toast('Toren: Good luck out there.');
       } save();
     }
+  }
+  function usePotion(){
+    if(state.dead||state.potions<=0||state.hp>=100)return;
+    state.potions--;state.hp=Math.min(100,state.hp+35);toast('Healing Potion +35 HP');save();
   }
   function dodge(){if(dodgeLock>0||state.dead)return;dodgeLock=.7;hero.position.addScaledVector(face,3);hero.position.y=0}
   function toggleInv(){state.invOpen=!state.invOpen;$('menu').style.display=state.invOpen?'grid':'none';updateUI()}
@@ -331,7 +404,7 @@ function start(TG){
   function moveJoy(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/42,y=(e.clientY-cy)/42;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}joyVec={x,y};stick.style.transform=`translate(${x*28}px,${y*28}px)`}
   $('attack').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
   $('dodge').addEventListener('pointerdown',e=>{e.preventDefault();dodge()});
-  $('interact').addEventListener('pointerdown',e=>{e.preventDefault();interact()});
+  $('interact').addEventListener('pointerdown',e=>{e.preventDefault();interact()}); $('potion').addEventListener('pointerdown',e=>{e.preventDefault();usePotion()});
   $('inv').onclick=toggleInv;$('close').onclick=toggleInv;
   $('fog').onclick=()=>{state.fog=!state.fog;scene.fog.density=state.fog?(state.dungeon?.028:.018):.006;toast(state.fog?'Dense fog':'Light fog');};
   $('reset').onclick=()=>{try{localStorage.removeItem(state.saveKey)}catch(e){}location.reload()};
@@ -351,6 +424,21 @@ function start(TG){
     ][Math.min(state.quest,5)];
     $('qtitle').textContent=qs[0];$('qtext').textContent=qs[1];
     $('iweapon').textContent=state.weapon+' · ATK '+state.atk;
+    $('iarmor').textContent=state.armor;
+    $('ipower').textContent=state.relicPower;
+    $('idiscoveries').textContent=state.discoveries;
+    const inDungeon=state.dungeon;
+    $('zoneName').textContent=inDungeon?'ANCIENT DUNGEON':'THE WILD';
+    $('zoneSub').textContent=inDungeon?'Guardian chamber · no turning back':'Explore the forgotten frontier';
+    const boss=enemies.find(e=>e.userData.type==='boss');
+    if(boss && inDungeon && !boss.userData.dead){
+      $('bossbar').style.display='block';
+      $('bosshp').style.width=Math.max(0,boss.userData.hp/boss.userData.maxHp*100)+'%';
+    }else $('bossbar').style.display='none';
+    const mp=document.getElementById('mapPlayer');
+    const mx=Math.max(10,Math.min(108,59+hero.position.x*.55));
+    const my=Math.max(10,Math.min(108,59+hero.position.z*.42));
+    mp.style.left=mx+'px';mp.style.top=my+'px';
   }
 
   const _fwd=new THREE.Vector3(),_right=new THREE.Vector3(),_mv=new THREE.Vector3();
@@ -420,7 +508,7 @@ function start(TG){
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showError('WebGL context lost. Please reopen the game.')});
   updateUI();
   loading.style.display='none';hud.style.display='block';
-  toast(TG.user?'Welcome to RELIC, '+(TG.user.first_name||'Seeker')+'!':'RELIC Alpha ready');
+  toast(TG.user?'Welcome to RELIC, '+(TG.user.first_name||'Seeker')+'!':'RELIC Founder Build ready');
   animate();
 }
 
