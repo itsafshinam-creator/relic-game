@@ -6,8 +6,8 @@
 <title>RELIC — The Lost World | Telegram Alpha 0.1</title>
 <style>
 :root{--glass:rgba(10,16,18,.72);--line:rgba(255,255,255,.12);--gold:#e9c46a;--red:#e76f51;--green:#78c091}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#182421;color:#fff;font-family:Inter,system-ui,Arial,sans-serif;touch-action:none}
-canvas{position:fixed;inset:0;display:block}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}html,body{margin:0;width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:#182421;color:#fff;font-family:Inter,system-ui,Arial,sans-serif;touch-action:none}
+canvas{position:fixed;inset:0;display:block;touch-action:none}
 #loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#3c5651,#111817 70%);text-align:center}
 .loadbox{width:min(88vw,440px);padding:28px;border:1px solid var(--line);border-radius:22px;background:rgba(5,10,10,.72);backdrop-filter:blur(12px)}
 .logo{font-size:34px;font-weight:900;letter-spacing:7px}.sub{opacity:.65;margin-top:6px}.bar{height:5px;background:#293735;border-radius:9px;margin:22px 0 10px;overflow:hidden}.bar i{display:block;height:100%;width:40%;background:var(--gold);animation:load 1.2s infinite}@keyframes load{50%{width:85%}100%{width:40%}}
@@ -25,7 +25,7 @@ canvas{position:fixed;inset:0;display:block}
 #joy{display:none;position:absolute;left:22px;bottom:34px;width:116px;height:116px;border-radius:50%;background:#ffffff10;border:1px solid #ffffff22;pointer-events:auto}.stick{position:absolute;width:54px;height:54px;left:31px;top:31px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff35}
 .touchbtn{display:none;position:absolute;width:62px;height:62px;border-radius:50%;background:#ffffff16;border:1px solid #ffffff30;color:#fff;font-size:23px;font-weight:900;pointer-events:auto}.attack{right:24px;bottom:42px}.dodge{right:98px;bottom:112px}.interact{right:24px;bottom:120px;width:52px;height:52px;font-size:17px}
 @media (max-width:800px),(pointer:coarse){.quest{width:48vw}.actions .btn{padding:8px 9px}.help{display:none}#joy,.touchbtn{display:block}}
-@media (max-width:520px){.stats{min-width:170px}.quest{position:absolute;top:66px;right:0;width:68vw}.actions{top:125px}.actions .btn{font-size:11px}.stats .nums{font-size:10px}}
+@media (max-width:520px){.stats{min-width:170px}.quest{position:absolute;top:66px;right:0;width:68vw}.actions{top:150px}.actions .btn{font-size:11px}.stats .nums{font-size:10px}}
 </style>
 </head>
 <body>
@@ -67,47 +67,72 @@ canvas{position:fixed;inset:0;display:block}
   <button class="btn" id="close">Close</button>
 </div></div>
 
-<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 <script>
 (() => {
 'use strict';
 const $=id=>document.getElementById(id);
 const loading=$('loading'), hud=$('hud'), loadtxt=$('loadtxt'), err=$('error');
 
-window.addEventListener('error', e => {
+function showError(msg){
   err.style.display='block';
-  err.textContent='Game error: '+(e.message||'Unknown error')+'. If this is a local file, open it from a web host/Telegram Mini App so external libraries can load.';
+  err.textContent=msg;
+  loadtxt.textContent='Startup failed';
+}
+window.addEventListener('error', e => {
+  if(e.target && e.target!==window) return; // resource load errors handled by loader
+  showError('Game error: '+(e.message||'Unknown error'));
 });
 window.addEventListener('unhandledrejection', e => {
-  err.style.display='block';
-  err.textContent='Game startup error: '+(e.reason?.message||e.reason||'Unknown error');
+  showError('Game startup error: '+(e.reason?.message||e.reason||'Unknown error'));
 });
 
+/* ---------- Script loader with fallbacks (FIX: Three.js was never loaded) ---------- */
+function loadScript(src,ms=9000){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    const t=setTimeout(()=>{s.remove();rej(new Error('timeout '+src))},ms);
+    s.src=src;
+    s.onload=()=>{clearTimeout(t);res()};
+    s.onerror=()=>{clearTimeout(t);s.remove();rej(new Error('failed '+src))};
+    document.head.appendChild(s);
+  });
+}
+async function loadFirst(list){
+  for(const u of list){ try{ await loadScript(u); if(window.THREE) return true; }catch(e){} }
+  return false;
+}
+const THREE_SOURCES=[
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js',
+  'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js',
+  'https://unpkg.com/three@0.158.0/build/three.min.js'
+];
+
+/* ---------- Telegram ---------- */
 function telegramSetup(){
   const tg=window.Telegram?.WebApp;
   if(!tg) return {tg:null,user:null};
   try{
     tg.ready(); tg.expand();
     tg.setHeaderColor?.('#172421'); tg.setBackgroundColor?.('#172421');
-    tg.enableClosingConfirmation?.();
+    tg.disableVerticalSwipes?.();   // FIX: swipe-down while dragging camera closed the mini app
     const u=tg.initDataUnsafe?.user;
     if(u) $('tgname').textContent='· '+(u.first_name||u.username||'PLAYER');
     return {tg,user:u||null};
   }catch(e){return {tg,user:null}}
 }
-const TG=telegramSetup();
 
-function start(){
-  if(!window.THREE) throw new Error('Three.js did not load. Check internet/CDN access.');
-  if(!window.WebGL2RenderingContext) throw new Error('WebGL 2 is not available in this browser/WebView.');
+function start(TG){
+  if(!window.THREE) throw new Error('Three.js did not load. Check internet/CDN access (cdnjs / jsdelivr / unpkg).');
   const THREE=window.THREE;
+  const testCanvas=document.createElement('canvas');
+  if(!(testCanvas.getContext('webgl2')||testCanvas.getContext('webgl'))) throw new Error('WebGL is not available in this browser/WebView.');
 
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x667a7d);
   scene.fog=new THREE.FogExp2(0x667a7d,.018);
 
   const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
   renderer.setSize(innerWidth,innerHeight);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -115,6 +140,7 @@ function start(){
   document.body.appendChild(renderer.domElement);
 
   const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.1,240);
+  camera.position.set(0,4,-4);
   const clock=new THREE.Clock();
 
   scene.add(new THREE.HemisphereLight(0xc9e2e6,0x16211d,1.8));
@@ -122,33 +148,40 @@ function start(){
 
   const state={
     hp:100,xp:0,lvl:1,atk:12,gold:120,shards:0,wood:0,iron:0,crystal:0,
+    // quest: 0 talk Mara, 1 gather, 2 reach gate, 3 kill guardian, 4 return to Mara, 5 done
     quest:0,questProgress:0,fog:true,dead:false,invOpen:false,dungeon:false,
-    weapon:'Seeker Blade',saveKey:'relic_tg_alpha_01'
+    weapon:'Seeker Blade',saveKey:'relic_tg_alpha_02'
   };
-  const save=()=>{try{localStorage.setItem(state.saveKey,JSON.stringify({...state,invOpen:false}))}catch{}};
-  const load=()=>{try{const x=JSON.parse(localStorage.getItem(state.saveKey)||'null'); if(x) Object.assign(state,x)}catch{}};
+  const save=()=>{try{localStorage.setItem(state.saveKey,JSON.stringify({...state,invOpen:false,dead:false}))}catch(e){}};
+  const load=()=>{try{const x=JSON.parse(localStorage.getItem(state.saveKey)||'null'); if(x) Object.assign(state,x); state.dead=false;state.invOpen=false;state.dungeon=false;state.hp=Math.max(1,state.hp)}catch(e){}};
   load();
+  scene.fog.density=.018;
 
-  function mat(c,r=1){return new THREE.MeshStandardMaterial({color:c,roughness:r})}
+  // shared materials/geometries (performance fix for mobile)
+  const matCache=new Map();
+  function mat(c,r=1){const k=c+'_'+r;if(!matCache.has(k))matCache.set(k,new THREE.MeshStandardMaterial({color:c,roughness:r}));return matCache.get(k)}
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),mat(0x30463d)); ground.rotation.x=-Math.PI/2; scene.add(ground);
   const river=new THREE.Mesh(new THREE.PlaneGeometry(15,220),new THREE.MeshStandardMaterial({color:0x294d55,transparent:true,opacity:.82,roughness:.2}));
   river.rotation.x=-Math.PI/2; river.position.x=-48; river.position.y=.02; scene.add(river);
 
-  const world=new THREE.Group(); scene.add(world),world.position.set(0,0,0);
+  const world=new THREE.Group(); scene.add(world);
   function box(x,y,z,s,c,parent=world){const m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.position.set(x,y,z);parent.add(m);return m}
+  const trunkGeo=new THREE.CylinderGeometry(.16,.22,1.9,7), leafGeo=new THREE.ConeGeometry(.85,2.1,8), rockGeo=new THREE.DodecahedronGeometry(.55,0);
   function tree(x,z,scale=1,parent=world){
     const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);
-    const t=new THREE.Mesh(new THREE.CylinderGeometry(.16,.22,1.9,7),mat(0x40362c));t.position.y=.95;g.add(t);
-    const l=new THREE.Mesh(new THREE.ConeGeometry(.85,2.1,8),mat(0x263e31));l.position.y=2.25;g.add(l);
+    const t=new THREE.Mesh(trunkGeo,mat(0x40362c));t.position.y=.95;g.add(t);
+    const l=new THREE.Mesh(leafGeo,mat(0x263e31));l.position.y=2.25;g.add(l);
     parent.add(g);
   }
   function rock(x,z,s=1,parent=world){
-    const r=new THREE.Mesh(new THREE.DodecahedronGeometry(.55*s,0),mat(0x535b57));r.position.set(x,.35*s,z);parent.add(r);
+    const r=new THREE.Mesh(rockGeo,mat(0x535b57));r.scale.setScalar(s);r.position.set(x,.35*s,z);parent.add(r);
   }
   for(let i=0;i<130;i++){
     const x=(Math.random()-.5)*205,z=(Math.random()-.5)*205;
     if(Math.abs(x+48)<10) continue;
     if(Math.hypot(x,z+18)<18) continue;
+    if(Math.hypot(x,z+11)<6) continue;
+    if(Math.abs(x)<8 && z<-58) continue; // keep dungeon gate clear
     tree(x,z,.7+Math.random()*.8);
   }
   for(let i=0;i<55;i++) rock((Math.random()-.5)*190,(Math.random()-.5)*190,.6+Math.random()*.8);
@@ -167,13 +200,15 @@ function start(){
     const h=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),mat(0xb78d72));h.position.y=1.65;g.add(h);
     g.userData={npc:true,name};scene.add(g);return g;
   }
-  const mara=npc('Mara',-3,-16,0x5e7380), toren=npc('Toren',4,-15,0x865d4e);
+  const mara=npc('Mara',-3,-13,0x5e7380), toren=npc('Toren',4,-13,0x865d4e);
 
-  // Hero
-  const hero=new THREE.Group(); hero.position.set(0,0,-11); scene.add(hero);
+  // Hero (front of model faces -Z, cape on the back)
+  const hero=new THREE.Group(); hero.position.set(0,0,-8); scene.add(hero);
   const hb=new THREE.Mesh(new THREE.CapsuleGeometry(.46,1.0,5,8),mat(0x69747c));hb.position.y=.72;hero.add(hb);
   const hh=new THREE.Mesh(new THREE.SphereGeometry(.34,10,8),mat(0xb78d72));hh.position.y=1.65;hero.add(hh);
   const cape=new THREE.Mesh(new THREE.BoxGeometry(.78,.9,.12),mat(0x252d31));cape.position.set(0,.75,.4);hero.add(cape);
+  const sword=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,1.0),mat(0xcfd8dc,.4));sword.position.set(.55,.9,-.6);hero.add(sword);
+  const face=new THREE.Vector3(0,0,-1);
 
   // Resources
   const resources=[];
@@ -191,9 +226,11 @@ function start(){
   const dungeon=new THREE.Group(); dungeon.position.set(0,0,-72); scene.add(dungeon);
   box(0,2,0,[18,4,2],0x272b29,dungeon);box(-9,1,0,[2,2,2],0x252725,dungeon);box(9,1,0,[2,2,2],0x252725,dungeon);
   const gate=new THREE.Mesh(new THREE.BoxGeometry(8,4,.5),mat(0x101313));gate.position.set(0,2,0);dungeon.add(gate);
-  const rune=new THREE.Mesh(new THREE.TorusGeometry(1.2,.12,8,20),mat(0x5bb6b0));rune.position.set(0,2,.3);rune.rotation.x=Math.PI/2;dungeon.add(rune);
+  const rune=new THREE.Mesh(new THREE.TorusGeometry(1.2,.12,8,20),mat(0x5bb6b0));rune.position.set(0,2,1.2);dungeon.add(rune);
+  const GATE=new THREE.Vector3(0,0,-70);
 
   const enemies=[];
+  const isDeepZone=z=>z<-45;
   function enemy(type,x,z,hp=30){
     const colors={beast:0x805447,ranged:0x566f78,tank:0x56524b,boss:0x7e3030};
     const g=new THREE.Group();g.position.set(x,0,z);
@@ -201,74 +238,103 @@ function start(){
     const body=new THREE.Mesh(new THREE.CapsuleGeometry(.42*s,.85*s,5,8),mat(colors[type]));body.position.y=.7*s;g.add(body);
     const head=new THREE.Mesh(new THREE.SphereGeometry(.31*s,10,8),mat(0x8d7769));head.position.y=1.5*s;g.add(head);
     g.userData={enemy:true,type,hp,maxHp:hp,dead:false,cd:0,home:new THREE.Vector3(x,0,z)};
-    g.visible=state.dungeon || z>-65;scene.add(g);enemies.push(g);return g;
+    g.visible=!isDeepZone(z);scene.add(g);enemies.push(g);return g;
   }
   enemy('beast',-13,-28,35);enemy('beast',13,-32,35);enemy('ranged',20,-47,28);enemy('tank',-17,-51,75);
-  const boss=enemy('boss',0,-65,150);
+  enemy('boss',0,-65,150);
 
-  const keys={};let yaw=0,pitch=.38,attackLock=0,dodgeLock=0,dragging=false,lastX=0,lastY=0;
-  addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' '){e.preventDefault();attack()}if(e.key.toLowerCase()==='e')interact();if(e.key.toLowerCase()==='i')toggleInv();if(e.key==='Shift')dodge()});
+  /* ---------- Input ---------- */
+  const keys={};let yaw=0,pitch=.38,attackLock=0,dodgeLock=0,dragId=null,lastX=0,lastY=0;
+  addEventListener('keydown',e=>{
+    const k=e.key.toLowerCase();keys[k]=true;
+    if(e.key===' '){e.preventDefault();attack()}
+    if(k==='e')interact();
+    if(k==='i')toggleInv();
+    if(e.key==='Shift')dodge();
+  });
   addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-  addEventListener('pointerdown',e=>{if(e.target===renderer.domElement){dragging=true;lastX=e.clientX;lastY=e.clientY}});
-  addEventListener('pointermove',e=>{if(!dragging)return;yaw-=(e.clientX-lastX)*.006;pitch=Math.max(.12,Math.min(.85,pitch-(e.clientY-lastY)*.004));lastX=e.clientX;lastY=e.clientY});
-  addEventListener('pointerup',()=>dragging=false);
+  addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
+  // FIX: track pointerId so joystick finger doesn't corrupt camera drag (multi-touch)
+  renderer.domElement.addEventListener('pointerdown',e=>{if(dragId===null){dragId=e.pointerId;lastX=e.clientX;lastY=e.clientY}});
+  addEventListener('pointermove',e=>{
+    if(e.pointerId!==dragId)return;
+    yaw-=(e.clientX-lastX)*.006;pitch=Math.max(.12,Math.min(.85,pitch-(e.clientY-lastY)*.004));lastX=e.clientX;lastY=e.clientY;
+  });
+  const endDrag=e=>{if(e.pointerId===dragId)dragId=null};
+  addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);
 
   function attack(){
     if(attackLock>0||state.dead)return;attackLock=.45;
-    const dir=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
+    sword.rotation.x=-1.0;
     for(const e of enemies){
       if(e.userData.dead||!e.visible)continue;
       const d=hero.position.distanceTo(e.position);
-      if(d<3.0){
-        const to=e.position.clone().sub(hero.position).normalize();
-        if(dir.dot(to)>.15){e.userData.hp-=state.atk;toast('Hit! -'+state.atk);if(e.userData.hp<=0)kill(e)}
+      if(d<3.2){
+        const to=e.position.clone().sub(hero.position).setY(0).normalize();
+        if(face.dot(to)>-.1){e.userData.hp-=state.atk;toast('Hit! -'+state.atk);if(e.userData.hp<=0)kill(e)}
       }
     }
   }
   function kill(e){
-    e.userData.dead=true;e.visible=false;state.xp+=e.userData.type==='boss'?100:25;state.gold+=e.userData.type==='boss'?150:15;
-    if(e.userData.type==='boss'){state.shards+=3;state.quest=Math.max(state.quest,3);toast('GUARDIAN DEFEATED — 3 Relic Shards');}
+    const boss=e.userData.type==='boss';
+    e.userData.dead=true;e.visible=false;state.xp+=boss?100:25;state.gold+=boss?150:15;
+    if(boss){state.shards+=3;state.quest=Math.max(state.quest,4);toast('GUARDIAN DEFEATED — 3 Relic Shards');}
     else toast('Enemy defeated +XP');
     levelCheck();save();
   }
-  function levelCheck(){const need=state.lvl*50;if(state.xp>=need){state.xp-=need;state.lvl++;state.atk+=4;state.hp=100;toast('LEVEL UP! LV '+state.lvl)}}
+  function levelCheck(){
+    let leveled=false;
+    while(state.xp>=state.lvl*50){state.xp-=state.lvl*50;state.lvl++;state.atk+=4;state.hp=100;leveled=true}
+    if(leveled)toast('LEVEL UP! LV '+state.lvl);
+  }
   function interact(){
     if(state.dead)return;
+    if(!state.dungeon && hero.position.distanceTo(GATE)<6){
+      state.dungeon=true;state.quest=Math.max(state.quest,3);
+      hero.position.set(0,0,-58);
+      enemies.forEach(e=>{if(!e.userData.dead&&isDeepZone(e.userData.home.z))e.visible=true});
+      scene.fog.density=state.fog?.028:.006;toast('ENTERED THE FIRST DUNGEON');save();return;
+    }
     let near=null,nd=999;
-    for(const n of [mara,toren]){const d=hero.position.distanceTo(n.position);if(d<3&&d<nd){near=n;nd=d}}
-    for(const r of resources){if(!r.userData.dead){const d=hero.position.distanceTo(r.position);if(d<2.6&&d<nd){near=r;nd=d}}}
-    if(hero.position.distanceTo(new THREE.Vector3(0,0,-70))<5 && !state.dungeon){state.dungeon=true;state.quest=Math.max(state.quest,2);hero.position.set(0,0,-58);enemies.forEach(e=>{if(e.position.z<-45)e.visible=true});scene.fog.density=.028;toast('ENTERED THE FIRST DUNGEON');save();return}
+    for(const n of [mara,toren]){const d=hero.position.distanceTo(n.position);if(d<3.5&&d<nd){near=n;nd=d}}
+    for(const r of resources){if(!r.userData.dead){const d=hero.position.distanceTo(r.position);if(d<2.8&&d<nd){near=r;nd=d}}}
     if(!near)return;
-    if(near.userData?.resource){
+    if(near.userData.resource){
       near.userData.dead=true;near.visible=false;state[near.userData.type]++;toast('Collected '+near.userData.type.toUpperCase());
-      if(state.quest===1) state.questProgress++;
       save();return;
     }
-    if(near.userData?.npc){
+    if(near.userData.npc){
       if(near.userData.name==='Mara'){
         if(state.quest===0){state.quest=1;toast('Mara: Gather 3 Wood and 2 Iron.');}
-        else if(state.quest===3){state.quest=4;state.gold+=250;toast('Mara: You found the First Relic. +250 Gold');}
+        else if(state.quest===4){state.quest=5;state.gold+=250;toast('Mara: You found the First Relic. +250 Gold');}
+        else if(state.quest>=5)toast('Mara: More lands await in the next alpha.');
+        else toast('Mara: Keep going, Seeker.');
       } else {
         if(state.quest===1&&state.wood>=3&&state.iron>=2){state.wood-=3;state.iron-=2;state.atk+=4;state.quest=2;toast('Toren upgraded your blade +4 ATK');}
-        else toast('Toren: Bring me 3 Wood and 2 Iron.');
+        else if(state.quest===0)toast('Toren: Speak with Mara first.');
+        else if(state.quest===1)toast('Toren: Bring me 3 Wood and 2 Iron.');
+        else toast('Toren: Good luck out there.');
       } save();
     }
   }
-  function dodge(){if(dodgeLock>0||state.dead)return;dodgeLock=.7;const d=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));hero.position.addScaledVector(d,3);hero.position.y=0}
+  function dodge(){if(dodgeLock>0||state.dead)return;dodgeLock=.7;hero.position.addScaledVector(face,3);hero.position.y=0}
   function toggleInv(){state.invOpen=!state.invOpen;$('menu').style.display=state.invOpen?'grid':'none';updateUI()}
   function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1700)}
 
   // Touch controls
-  let joyVec={x:0,y:0},joyActive=false;
+  let joyVec={x:0,y:0},joyId=null;
   const joy=$('joy'),stick=joy.querySelector('.stick');
-  joy.addEventListener('pointerdown',e=>{joyActive=true;joy.setPointerCapture(e.pointerId);moveJoy(e)});
-  joy.addEventListener('pointermove',e=>{if(joyActive)moveJoy(e)});
-  joy.addEventListener('pointerup',()=>{joyActive=false;joyVec={x:0,y:0};stick.style.transform='translate(0,0)'});
+  joy.addEventListener('pointerdown',e=>{e.preventDefault();joyId=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}moveJoy(e)});
+  joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)moveJoy(e)});
+  const endJoy=e=>{if(e.pointerId!==joyId)return;joyId=null;joyVec={x:0,y:0};stick.style.transform='translate(0,0)'};
+  joy.addEventListener('pointerup',endJoy);joy.addEventListener('pointercancel',endJoy);joy.addEventListener('lostpointercapture',endJoy);
   function moveJoy(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/42,y=(e.clientY-cy)/42;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}joyVec={x,y};stick.style.transform=`translate(${x*28}px,${y*28}px)`}
-  $('attack').onclick=attack;$('dodge').onclick=dodge;$('interact').onclick=interact;
+  $('attack').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
+  $('dodge').addEventListener('pointerdown',e=>{e.preventDefault();dodge()});
+  $('interact').addEventListener('pointerdown',e=>{e.preventDefault();interact()});
   $('inv').onclick=toggleInv;$('close').onclick=toggleInv;
   $('fog').onclick=()=>{state.fog=!state.fog;scene.fog.density=state.fog?(state.dungeon?.028:.018):.006;toast(state.fog?'Dense fog':'Light fog');};
-  $('reset').onclick=()=>{localStorage.removeItem(state.saveKey);location.reload()};
+  $('reset').onclick=()=>{try{localStorage.removeItem(state.saveKey)}catch(e){}location.reload()};
 
   function updateUI(){
     $('hp').textContent=Math.max(0,Math.round(state.hp));$('lvl').textContent=state.lvl;$('atk').textContent=state.atk;
@@ -278,52 +344,100 @@ function start(){
     const qs=[
       ['THE FIRST RELIC','Speak with Mara at the Outpost.'],
       ['GATHERING','Collect '+Math.min(state.wood,3)+'/3 Wood and '+Math.min(state.iron,2)+'/2 Iron. Then speak with Toren.'],
-      ['THE DUNGEON','Reach the ancient gate and press E.'],
+      ['THE DUNGEON','Reach the ancient gate in the north and press E.'],
       ['THE GUARDIAN','Defeat the Dungeon Guardian.'],
-      ['RETURN','Return to Mara at the Outpost. The First Relic is yours.']
-    ][Math.min(state.quest,4)];
+      ['RETURN','Return to Mara at the Outpost.'],
+      ['COMPLETE','You found the First Relic. More in the next alpha!']
+    ][Math.min(state.quest,5)];
     $('qtitle').textContent=qs[0];$('qtext').textContent=qs[1];
     $('iweapon').textContent=state.weapon+' · ATK '+state.atk;
   }
 
+  const _fwd=new THREE.Vector3(),_right=new THREE.Vector3(),_mv=new THREE.Vector3();
   function playerMove(dt){
     let f=(keys.w||keys.arrowup?1:0)+(keys.s||keys.arrowdown?-1:0);
     let str=(keys.d||keys.arrowright?1:0)+(keys.a||keys.arrowleft?-1:0);
     f+=-joyVec.y;str+=joyVec.x;
-    const len=Math.hypot(f,str);if(len){f/=len;str/=len;const speed=5.2;const dir=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));hero.position.addScaledVector(dir,f*speed*dt);hero.position.addScaledVector(right,str*speed*dt)}
+    const len=Math.hypot(f,str);
+    if(len>.05){
+      if(len>1){f/=len;str/=len}
+      // FIX: camera sits at +(sin,cos)*dist and looks toward the hero, so forward is the NEGATIVE of that
+      _fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+      _right.set(Math.cos(yaw),0,-Math.sin(yaw));
+      _mv.set(0,0,0).addScaledVector(_fwd,f).addScaledVector(_right,str);
+      const speed=5.2;
+      hero.position.addScaledVector(_mv,speed*dt);
+      if(_mv.lengthSq()>1e-4){face.copy(_mv).normalize();}
+    }
+    hero.rotation.y=Math.atan2(-face.x,-face.z);
     hero.position.x=Math.max(-95,Math.min(95,hero.position.x));hero.position.z=Math.max(-100,Math.min(95,hero.position.z));
+    sword.rotation.x+=(0-sword.rotation.x)*Math.min(1,dt*12);
   }
   function enemyAI(dt){
     for(const e of enemies){
       if(e.userData.dead||!e.visible)continue;
       const d=e.position.distanceTo(hero.position);e.userData.cd=Math.max(0,e.userData.cd-dt);
-      if(d<14&&d>2.1){const v=hero.position.clone().sub(e.position);v.y=0;v.normalize();e.position.addScaledVector(v,(e.userData.type==='tank'?1.2:1.7)*dt)}
+      if(d<14&&d>2.1){
+        const v=hero.position.clone().sub(e.position);v.y=0;v.normalize();
+        e.position.addScaledVector(v,(e.userData.type==='tank'?1.2:1.7)*dt);
+        e.rotation.y=Math.atan2(-v.x,-v.z);
+      }
       if(d<2.2&&e.userData.cd<=0){state.hp-=e.userData.type==='boss'?15:e.userData.type==='tank'?8:5;e.userData.cd=1.1;toast('You took damage!')}
     }
   }
-  function respawn(){state.hp=100;hero.position.set(0,0,-11);state.dead=false;state.dungeon=false;scene.fog.density=.018;enemies.forEach(e=>{if(e.position.z<-45)e.visible=false});toast('Respawned at Outpost')}
-  function cameraFollow(){
-    const target=hero.position.clone().add(new THREE.Vector3(0,1.1,0));
-    const offset=new THREE.Vector3(Math.sin(yaw)*7*Math.cos(pitch),3.0+Math.sin(pitch)*2,Math.cos(yaw)*7*Math.cos(pitch));
-    const desired=target.clone().add(offset);
-    camera.position.lerp(desired,.12);camera.lookAt(target);
+  function respawn(){
+    state.hp=100;hero.position.set(0,0,-8);state.dead=false;state.dungeon=false;
+    scene.fog.density=state.fog?.018:.006;
+    enemies.forEach(e=>{
+      const u=e.userData;if(u.dead)return;
+      e.position.copy(u.home);u.hp=u.maxHp;u.cd=0;e.visible=!isDeepZone(u.home.z);
+    });
+    toast('Respawned at Outpost');
   }
+  const _t=new THREE.Vector3(),_o=new THREE.Vector3(),_d=new THREE.Vector3();
+  function cameraFollow(){
+    _t.copy(hero.position);_t.y+=1.1;
+    _o.set(Math.sin(yaw)*7*Math.cos(pitch),3.0+Math.sin(pitch)*2,Math.cos(yaw)*7*Math.cos(pitch));
+    _d.copy(_t).add(_o);
+    camera.position.lerp(_d,.12);camera.lookAt(_t);
+  }
+  let uiT=0;
   function animate(){
     requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
     attackLock=Math.max(0,attackLock-dt);dodgeLock=Math.max(0,dodgeLock-dt);
-    if(!state.dead){playerMove(dt);enemyAI(dt);if(state.hp<=0){state.dead=true;setTimeout(respawn,800)}}
-    cameraFollow();updateUI();
+    if(!state.dead){
+      playerMove(dt);enemyAI(dt);
+      if(state.hp<=0){state.dead=true;toast('You fell…');setTimeout(respawn,900)}
+    }
+    flame.scale.setScalar(1+Math.sin(performance.now()*.012)*.12);
+    cameraFollow();
+    uiT+=dt;if(uiT>.12){uiT=0;updateUI()}
     renderer.render(scene,camera);
   }
-  addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  function onResize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
+  addEventListener('resize',onResize);
+  TG.tg?.onEvent?.('viewportChanged',onResize);
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showError('WebGL context lost. Please reopen the game.')});
   updateUI();
   loading.style.display='none';hud.style.display='block';
-  if(TG.tg) TG.tg.ready();
   toast(TG.user?'Welcome to RELIC, '+(TG.user.first_name||'Seeker')+'!':'RELIC Alpha ready');
   animate();
 }
-try{loadtxt.textContent='Loading 3D engine…';setTimeout(start,80)}
-catch(e){err.style.display='block';err.textContent=e.message||String(e);loadtxt.textContent='Startup failed';}
+
+/* ---------- Boot ---------- */
+(async()=>{
+  try{
+    loadtxt.textContent='Loading 3D engine…';
+    const tgP=loadScript('https://telegram.org/js/telegram-web-app.js',4000).catch(()=>{});
+    const ok=await loadFirst(THREE_SOURCES);
+    await tgP;
+    if(!ok) throw new Error('Could not download Three.js from any CDN. Check the internet connection (or VPN/filtering) and reopen.');
+    const TG=telegramSetup();
+    loadtxt.textContent='Building world…';
+    await new Promise(r=>setTimeout(r,30));
+    start(TG);
+  }catch(e){showError(e.message||String(e))}
+})();
 })();
 </script>
 </body>
