@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>RELIC — The Lost World | Telegram Alpha 0.1</title>
+<style>
+:root{--glass:rgba(10,16,18,.72);--line:rgba(255,255,255,.12);--gold:#e9c46a;--red:#e76f51;--green:#78c091}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#182421;color:#fff;font-family:Inter,system-ui,Arial,sans-serif;touch-action:none}
+canvas{position:fixed;inset:0;display:block}
+#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#3c5651,#111817 70%);text-align:center}
+.loadbox{width:min(88vw,440px);padding:28px;border:1px solid var(--line);border-radius:22px;background:rgba(5,10,10,.72);backdrop-filter:blur(12px)}
+.logo{font-size:34px;font-weight:900;letter-spacing:7px}.sub{opacity:.65;margin-top:6px}.bar{height:5px;background:#293735;border-radius:9px;margin:22px 0 10px;overflow:hidden}.bar i{display:block;height:100%;width:40%;background:var(--gold);animation:load 1.2s infinite}@keyframes load{50%{width:85%}100%{width:40%}}
+#error{display:none;color:#ffd7cf;text-align:left;font-size:13px;line-height:1.5;margin-top:15px;padding:12px;border:1px solid #a64c3b;border-radius:12px;background:#351b18}
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:none}
+.top{position:absolute;left:14px;right:14px;top:max(12px,env(safe-area-inset-top));display:flex;gap:8px;align-items:flex-start}
+.panel{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(8px);border-radius:14px;box-shadow:0 8px 30px #0005}
+.stats{padding:9px 11px;min-width:205px}.name{font-weight:800;font-size:13px}.meter{height:7px;background:#27302e;border-radius:8px;overflow:hidden;margin-top:6px}.meter b{display:block;height:100%;width:100%;background:var(--red)}.xp b{background:#5e9bd6}.nums{font-size:11px;opacity:.78;margin-top:5px}
+.quest{margin-left:auto;padding:10px 12px;width:min(310px,42vw);font-size:12px}.quest strong{color:var(--gold)}.quest p{margin:5px 0 0;line-height:1.35}
+.actions{position:absolute;right:14px;top:74px;display:flex;gap:7px;pointer-events:auto}.btn{border:1px solid var(--line);background:var(--glass);color:white;border-radius:12px;padding:9px 11px;font-weight:700}.btn:active{transform:scale(.96)}
+.bottom{position:absolute;left:14px;right:14px;bottom:max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end}
+.help{padding:8px 10px;font-size:11px;opacity:.8}.toast{position:absolute;left:50%;bottom:105px;transform:translateX(-50%);padding:10px 14px;border-radius:12px;background:rgba(0,0,0,.78);font-size:12px;opacity:0;transition:.2s}
+.toast.show{opacity:1}
+#menu{display:none;position:fixed;inset:0;z-index:30;place-items:center;background:#0008;pointer-events:auto}.modal{width:min(92vw,520px);max-height:82vh;overflow:auto;padding:18px}.modal h2{margin:0 0 12px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+#joy{display:none;position:absolute;left:22px;bottom:34px;width:116px;height:116px;border-radius:50%;background:#ffffff10;border:1px solid #ffffff22;pointer-events:auto}.stick{position:absolute;width:54px;height:54px;left:31px;top:31px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff35}
+.touchbtn{display:none;position:absolute;width:62px;height:62px;border-radius:50%;background:#ffffff16;border:1px solid #ffffff30;color:#fff;font-size:23px;font-weight:900;pointer-events:auto}.attack{right:24px;bottom:42px}.dodge{right:98px;bottom:112px}.interact{right:24px;bottom:120px;width:52px;height:52px;font-size:17px}
+@media (max-width:800px),(pointer:coarse){.quest{width:48vw}.actions .btn{padding:8px 9px}.help{display:none}#joy,.touchbtn{display:block}}
+@media (max-width:520px){.stats{min-width:170px}.quest{position:absolute;top:66px;right:0;width:68vw}.actions{top:125px}.actions .btn{font-size:11px}.stats .nums{font-size:10px}}
+</style>
+</head>
+<body>
+<div id="loading"><div class="loadbox">
+  <div class="logo">RELIC</div><div class="sub">THE LOST WORLD · TELEGRAM ALPHA 0.1</div>
+  <div class="bar"><i></i></div><div id="loadtxt">Initializing world…</div>
+  <div id="error"></div>
+</div></div>
+
+<div id="hud">
+  <div class="top">
+    <div class="panel stats">
+      <div class="name">SEEKER <span id="tgname"></span></div>
+      <div class="meter"><b id="hpbar"></b></div>
+      <div class="nums">HP <span id="hp">100</span>/100 · LV <span id="lvl">1</span> · ATK <span id="atk">12</span></div>
+      <div class="meter xp"><b id="xpbar" style="width:0%"></b></div>
+      <div class="nums">XP <span id="xp">0</span>/<span id="xpn">50</span> · 🪙 <span id="gold">120</span> · 💠 <span id="shards">0</span></div>
+    </div>
+    <div class="panel quest"><strong id="qtitle">THE FIRST RELIC</strong><p id="qtext">Speak with Mara at the Outpost.</p></div>
+  </div>
+  <div class="actions"><button class="btn" id="inv">🎒 Inventory</button><button class="btn" id="fog">🌫 Fog</button><button class="btn" id="reset">↻ Reset</button></div>
+  <div class="bottom"><div class="panel help">WASD / arrows · mouse drag · E interact · Space attack · Shift dodge · I inventory</div></div>
+  <div id="toast" class="toast"></div>
+  <div id="joy"><div class="stick"></div></div>
+  <button class="touchbtn attack" id="attack">⚔</button>
+  <button class="touchbtn dodge" id="dodge">↗</button>
+  <button class="touchbtn interact" id="interact">E</button>
+</div>
+
+<div id="menu"><div class="panel modal">
+  <h2>RELIC INVENTORY</h2>
+  <div class="row"><span>🪵 Wood</span><b id="iwood">0</b></div>
+  <div class="row"><span>⛓ Iron</span><b id="iiron">0</b></div>
+  <div class="row"><span>💎 Crystal</span><b id="icrystal">0</b></div>
+  <div class="row"><span>💠 Relic Shards</span><b id="ishards">0</b></div>
+  <div class="row"><span>🪙 Gold</span><b id="igold">0</b></div>
+  <div class="row"><span>⚔ Weapon</span><b id="iweapon">Seeker Blade</b></div>
+  <p style="opacity:.7;font-size:12px">Alpha economy only. No real-money or blockchain transactions are connected.</p>
+  <button class="btn" id="close">Close</button>
+</div></div>
+
+<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const loading=$('loading'), hud=$('hud'), loadtxt=$('loadtxt'), err=$('error');
+
+window.addEventListener('error', e => {
+  err.style.display='block';
+  err.textContent='Game error: '+(e.message||'Unknown error')+'. If this is a local file, open it from a web host/Telegram Mini App so external libraries can load.';
+});
+window.addEventListener('unhandledrejection', e => {
+  err.style.display='block';
+  err.textContent='Game startup error: '+(e.reason?.message||e.reason||'Unknown error');
+});
+
+function telegramSetup(){
+  const tg=window.Telegram?.WebApp;
+  if(!tg) return {tg:null,user:null};
+  try{
+    tg.ready(); tg.expand();
+    tg.setHeaderColor?.('#172421'); tg.setBackgroundColor?.('#172421');
+    tg.enableClosingConfirmation?.();
+    const u=tg.initDataUnsafe?.user;
+    if(u) $('tgname').textContent='· '+(u.first_name||u.username||'PLAYER');
+    return {tg,user:u||null};
+  }catch(e){return {tg,user:null}}
+}
+const TG=telegramSetup();
+
+function start(){
+  if(!window.THREE) throw new Error('Three.js did not load. Check internet/CDN access.');
+  if(!window.WebGL2RenderingContext) throw new Error('WebGL 2 is not available in this browser/WebView.');
+  const THREE=window.THREE;
+
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x667a7d);
+  scene.fog=new THREE.FogExp2(0x667a7d,.018);
+
+  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  document.body.appendChild(renderer.domElement);
+
+  const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.1,240);
+  const clock=new THREE.Clock();
+
+  scene.add(new THREE.HemisphereLight(0xc9e2e6,0x16211d,1.8));
+  const sun=new THREE.DirectionalLight(0xdce7dd,1.15); sun.position.set(-30,55,20); scene.add(sun);
+
+  const state={
+    hp:100,xp:0,lvl:1,atk:12,gold:120,shards:0,wood:0,iron:0,crystal:0,
+    quest:0,questProgress:0,fog:true,dead:false,invOpen:false,dungeon:false,
+    weapon:'Seeker Blade',saveKey:'relic_tg_alpha_01'
+  };
+  const save=()=>{try{localStorage.setItem(state.saveKey,JSON.stringify({...state,invOpen:false}))}catch{}};
+  const load=()=>{try{const x=JSON.parse(localStorage.getItem(state.saveKey)||'null'); if(x) Object.assign(state,x)}catch{}};
+  load();
+
+  function mat(c,r=1){return new THREE.MeshStandardMaterial({color:c,roughness:r})}
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),mat(0x30463d)); ground.rotation.x=-Math.PI/2; scene.add(ground);
+  const river=new THREE.Mesh(new THREE.PlaneGeometry(15,220),new THREE.MeshStandardMaterial({color:0x294d55,transparent:true,opacity:.82,roughness:.2}));
+  river.rotation.x=-Math.PI/2; river.position.x=-48; river.position.y=.02; scene.add(river);
+
+  const world=new THREE.Group(); scene.add(world),world.position.set(0,0,0);
+  function box(x,y,z,s,c,parent=world){const m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.position.set(x,y,z);parent.add(m);return m}
+  function tree(x,z,scale=1,parent=world){
+    const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(.16,.22,1.9,7),mat(0x40362c));t.position.y=.95;g.add(t);
+    const l=new THREE.Mesh(new THREE.ConeGeometry(.85,2.1,8),mat(0x263e31));l.position.y=2.25;g.add(l);
+    parent.add(g);
+  }
+  function rock(x,z,s=1,parent=world){
+    const r=new THREE.Mesh(new THREE.DodecahedronGeometry(.55*s,0),mat(0x535b57));r.position.set(x,.35*s,z);parent.add(r);
+  }
+  for(let i=0;i<130;i++){
+    const x=(Math.random()-.5)*205,z=(Math.random()-.5)*205;
+    if(Math.abs(x+48)<10) continue;
+    if(Math.hypot(x,z+18)<18) continue;
+    tree(x,z,.7+Math.random()*.8);
+  }
+  for(let i=0;i<55;i++) rock((Math.random()-.5)*190,(Math.random()-.5)*190,.6+Math.random()*.8);
+
+  // Outpost
+  const outpost=new THREE.Group(); outpost.position.set(0,0,-18); scene.add(outpost);
+  box(0,.15,0,[15,.3,15],0x3b3c35,outpost);
+  box(-4,1,-3,[5,2,5],0x5b5141,outpost); box(-4,2.25,-3,[5.5,.5,5.5],0x322e2a,outpost);
+  box(4,1,1,[4,2,4],0x665744,outpost); box(4,2.2,1,[4.5,.4,4.5],0x322e2a,outpost);
+  const fire=new THREE.PointLight(0xffb35c,2.2,12); fire.position.set(1,1.6,-1); outpost.add(fire);
+  const flame=new THREE.Mesh(new THREE.SphereGeometry(.35,10,8),new THREE.MeshBasicMaterial({color:0xff9a3d})); flame.position.set(1,1,-1); outpost.add(flame);
+
+  function npc(name,x,z,c){
+    const g=new THREE.Group();g.position.set(x,0,z);
+    const b=new THREE.Mesh(new THREE.CapsuleGeometry(.4,.9,5,8),mat(c));b.position.y=.75;g.add(b);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),mat(0xb78d72));h.position.y=1.65;g.add(h);
+    g.userData={npc:true,name};scene.add(g);return g;
+  }
+  const mara=npc('Mara',-3,-16,0x5e7380), toren=npc('Toren',4,-15,0x865d4e);
+
+  // Hero
+  const hero=new THREE.Group(); hero.position.set(0,0,-11); scene.add(hero);
+  const hb=new THREE.Mesh(new THREE.CapsuleGeometry(.46,1.0,5,8),mat(0x69747c));hb.position.y=.72;hero.add(hb);
+  const hh=new THREE.Mesh(new THREE.SphereGeometry(.34,10,8),mat(0xb78d72));hh.position.y=1.65;hero.add(hh);
+  const cape=new THREE.Mesh(new THREE.BoxGeometry(.78,.9,.12),mat(0x252d31));cape.position.set(0,.75,.4);hero.add(cape);
+
+  // Resources
+  const resources=[];
+  function resource(type,x,z){
+    const colors={wood:0x6b4a2f,iron:0x69716e,crystal:0x65b7c4};
+    const g=new THREE.Group();g.position.set(x,.25,z);
+    const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.48,0),mat(colors[type]));g.add(m);
+    g.userData={resource:true,type,dead:false};scene.add(g);resources.push(g);
+  }
+  resource('wood',-8,-8);resource('wood',-12,-2);resource('wood',8,-4);resource('wood',14,-14);
+  resource('iron',-18,-10);resource('iron',-22,-1);resource('iron',12,-10);
+  resource('crystal',-27,-35);resource('crystal',-35,-40);resource('crystal',18,-35);
+
+  // Dungeon
+  const dungeon=new THREE.Group(); dungeon.position.set(0,0,-72); scene.add(dungeon);
+  box(0,2,0,[18,4,2],0x272b29,dungeon);box(-9,1,0,[2,2,2],0x252725,dungeon);box(9,1,0,[2,2,2],0x252725,dungeon);
+  const gate=new THREE.Mesh(new THREE.BoxGeometry(8,4,.5),mat(0x101313));gate.position.set(0,2,0);dungeon.add(gate);
+  const rune=new THREE.Mesh(new THREE.TorusGeometry(1.2,.12,8,20),mat(0x5bb6b0));rune.position.set(0,2,.3);rune.rotation.x=Math.PI/2;dungeon.add(rune);
+
+  const enemies=[];
+  function enemy(type,x,z,hp=30){
+    const colors={beast:0x805447,ranged:0x566f78,tank:0x56524b,boss:0x7e3030};
+    const g=new THREE.Group();g.position.set(x,0,z);
+    const s=type==='boss'?1.45:type==='tank'?1.15:1;
+    const body=new THREE.Mesh(new THREE.CapsuleGeometry(.42*s,.85*s,5,8),mat(colors[type]));body.position.y=.7*s;g.add(body);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.31*s,10,8),mat(0x8d7769));head.position.y=1.5*s;g.add(head);
+    g.userData={enemy:true,type,hp,maxHp:hp,dead:false,cd:0,home:new THREE.Vector3(x,0,z)};
+    g.visible=state.dungeon || z>-65;scene.add(g);enemies.push(g);return g;
+  }
+  enemy('beast',-13,-28,35);enemy('beast',13,-32,35);enemy('ranged',20,-47,28);enemy('tank',-17,-51,75);
+  const boss=enemy('boss',0,-65,150);
+
+  const keys={};let yaw=0,pitch=.38,attackLock=0,dodgeLock=0,dragging=false,lastX=0,lastY=0;
+  addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' '){e.preventDefault();attack()}if(e.key.toLowerCase()==='e')interact();if(e.key.toLowerCase()==='i')toggleInv();if(e.key==='Shift')dodge()});
+  addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+  addEventListener('pointerdown',e=>{if(e.target===renderer.domElement){dragging=true;lastX=e.clientX;lastY=e.clientY}});
+  addEventListener('pointermove',e=>{if(!dragging)return;yaw-=(e.clientX-lastX)*.006;pitch=Math.max(.12,Math.min(.85,pitch-(e.clientY-lastY)*.004));lastX=e.clientX;lastY=e.clientY});
+  addEventListener('pointerup',()=>dragging=false);
+
+  function attack(){
+    if(attackLock>0||state.dead)return;attackLock=.45;
+    const dir=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
+    for(const e of enemies){
+      if(e.userData.dead||!e.visible)continue;
+      const d=hero.position.distanceTo(e.position);
+      if(d<3.0){
+        const to=e.position.clone().sub(hero.position).normalize();
+        if(dir.dot(to)>.15){e.userData.hp-=state.atk;toast('Hit! -'+state.atk);if(e.userData.hp<=0)kill(e)}
+      }
+    }
+  }
+  function kill(e){
+    e.userData.dead=true;e.visible=false;state.xp+=e.userData.type==='boss'?100:25;state.gold+=e.userData.type==='boss'?150:15;
+    if(e.userData.type==='boss'){state.shards+=3;state.quest=Math.max(state.quest,3);toast('GUARDIAN DEFEATED — 3 Relic Shards');}
+    else toast('Enemy defeated +XP');
+    levelCheck();save();
+  }
+  function levelCheck(){const need=state.lvl*50;if(state.xp>=need){state.xp-=need;state.lvl++;state.atk+=4;state.hp=100;toast('LEVEL UP! LV '+state.lvl)}}
+  function interact(){
+    if(state.dead)return;
+    let near=null,nd=999;
+    for(const n of [mara,toren]){const d=hero.position.distanceTo(n.position);if(d<3&&d<nd){near=n;nd=d}}
+    for(const r of resources){if(!r.userData.dead){const d=hero.position.distanceTo(r.position);if(d<2.6&&d<nd){near=r;nd=d}}}
+    if(hero.position.distanceTo(new THREE.Vector3(0,0,-70))<5 && !state.dungeon){state.dungeon=true;state.quest=Math.max(state.quest,2);hero.position.set(0,0,-58);enemies.forEach(e=>{if(e.position.z<-45)e.visible=true});scene.fog.density=.028;toast('ENTERED THE FIRST DUNGEON');save();return}
+    if(!near)return;
+    if(near.userData?.resource){
+      near.userData.dead=true;near.visible=false;state[near.userData.type]++;toast('Collected '+near.userData.type.toUpperCase());
+      if(state.quest===1) state.questProgress++;
+      save();return;
+    }
+    if(near.userData?.npc){
+      if(near.userData.name==='Mara'){
+        if(state.quest===0){state.quest=1;toast('Mara: Gather 3 Wood and 2 Iron.');}
+        else if(state.quest===3){state.quest=4;state.gold+=250;toast('Mara: You found the First Relic. +250 Gold');}
+      } else {
+        if(state.quest===1&&state.wood>=3&&state.iron>=2){state.wood-=3;state.iron-=2;state.atk+=4;state.quest=2;toast('Toren upgraded your blade +4 ATK');}
+        else toast('Toren: Bring me 3 Wood and 2 Iron.');
+      } save();
+    }
+  }
+  function dodge(){if(dodgeLock>0||state.dead)return;dodgeLock=.7;const d=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));hero.position.addScaledVector(d,3);hero.position.y=0}
+  function toggleInv(){state.invOpen=!state.invOpen;$('menu').style.display=state.invOpen?'grid':'none';updateUI()}
+  function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1700)}
+
+  // Touch controls
+  let joyVec={x:0,y:0},joyActive=false;
+  const joy=$('joy'),stick=joy.querySelector('.stick');
+  joy.addEventListener('pointerdown',e=>{joyActive=true;joy.setPointerCapture(e.pointerId);moveJoy(e)});
+  joy.addEventListener('pointermove',e=>{if(joyActive)moveJoy(e)});
+  joy.addEventListener('pointerup',()=>{joyActive=false;joyVec={x:0,y:0};stick.style.transform='translate(0,0)'});
+  function moveJoy(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/42,y=(e.clientY-cy)/42;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}joyVec={x,y};stick.style.transform=`translate(${x*28}px,${y*28}px)`}
+  $('attack').onclick=attack;$('dodge').onclick=dodge;$('interact').onclick=interact;
+  $('inv').onclick=toggleInv;$('close').onclick=toggleInv;
+  $('fog').onclick=()=>{state.fog=!state.fog;scene.fog.density=state.fog?(state.dungeon?.028:.018):.006;toast(state.fog?'Dense fog':'Light fog');};
+  $('reset').onclick=()=>{localStorage.removeItem(state.saveKey);location.reload()};
+
+  function updateUI(){
+    $('hp').textContent=Math.max(0,Math.round(state.hp));$('lvl').textContent=state.lvl;$('atk').textContent=state.atk;
+    $('xp').textContent=state.xp;$('xpn').textContent=state.lvl*50;$('gold').textContent=state.gold;$('shards').textContent=state.shards;
+    $('hpbar').style.width=Math.max(0,state.hp)+'%';$('xpbar').style.width=Math.min(100,state.xp/(state.lvl*50)*100)+'%';
+    $('iwood').textContent=state.wood;$('iiron').textContent=state.iron;$('icrystal').textContent=state.crystal;$('ishards').textContent=state.shards;$('igold').textContent=state.gold;
+    const qs=[
+      ['THE FIRST RELIC','Speak with Mara at the Outpost.'],
+      ['GATHERING','Collect '+Math.min(state.wood,3)+'/3 Wood and '+Math.min(state.iron,2)+'/2 Iron. Then speak with Toren.'],
+      ['THE DUNGEON','Reach the ancient gate and press E.'],
+      ['THE GUARDIAN','Defeat the Dungeon Guardian.'],
+      ['RETURN','Return to Mara at the Outpost. The First Relic is yours.']
+    ][Math.min(state.quest,4)];
+    $('qtitle').textContent=qs[0];$('qtext').textContent=qs[1];
+    $('iweapon').textContent=state.weapon+' · ATK '+state.atk;
+  }
+
+  function playerMove(dt){
+    let f=(keys.w||keys.arrowup?1:0)+(keys.s||keys.arrowdown?-1:0);
+    let str=(keys.d||keys.arrowright?1:0)+(keys.a||keys.arrowleft?-1:0);
+    f+=-joyVec.y;str+=joyVec.x;
+    const len=Math.hypot(f,str);if(len){f/=len;str/=len;const speed=5.2;const dir=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));hero.position.addScaledVector(dir,f*speed*dt);hero.position.addScaledVector(right,str*speed*dt)}
+    hero.position.x=Math.max(-95,Math.min(95,hero.position.x));hero.position.z=Math.max(-100,Math.min(95,hero.position.z));
+  }
+  function enemyAI(dt){
+    for(const e of enemies){
+      if(e.userData.dead||!e.visible)continue;
+      const d=e.position.distanceTo(hero.position);e.userData.cd=Math.max(0,e.userData.cd-dt);
+      if(d<14&&d>2.1){const v=hero.position.clone().sub(e.position);v.y=0;v.normalize();e.position.addScaledVector(v,(e.userData.type==='tank'?1.2:1.7)*dt)}
+      if(d<2.2&&e.userData.cd<=0){state.hp-=e.userData.type==='boss'?15:e.userData.type==='tank'?8:5;e.userData.cd=1.1;toast('You took damage!')}
+    }
+  }
+  function respawn(){state.hp=100;hero.position.set(0,0,-11);state.dead=false;state.dungeon=false;scene.fog.density=.018;enemies.forEach(e=>{if(e.position.z<-45)e.visible=false});toast('Respawned at Outpost')}
+  function cameraFollow(){
+    const target=hero.position.clone().add(new THREE.Vector3(0,1.1,0));
+    const offset=new THREE.Vector3(Math.sin(yaw)*7*Math.cos(pitch),3.0+Math.sin(pitch)*2,Math.cos(yaw)*7*Math.cos(pitch));
+    const desired=target.clone().add(offset);
+    camera.position.lerp(desired,.12);camera.lookAt(target);
+  }
+  function animate(){
+    requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
+    attackLock=Math.max(0,attackLock-dt);dodgeLock=Math.max(0,dodgeLock-dt);
+    if(!state.dead){playerMove(dt);enemyAI(dt);if(state.hp<=0){state.dead=true;setTimeout(respawn,800)}}
+    cameraFollow();updateUI();
+    renderer.render(scene,camera);
+  }
+  addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  updateUI();
+  loading.style.display='none';hud.style.display='block';
+  if(TG.tg) TG.tg.ready();
+  toast(TG.user?'Welcome to RELIC, '+(TG.user.first_name||'Seeker')+'!':'RELIC Alpha ready');
+  animate();
+}
+try{loadtxt.textContent='Loading 3D engine…';setTimeout(start,80)}
+catch(e){err.style.display='block';err.textContent=e.message||String(e);loadtxt.textContent='Startup failed';}
+})();
+</script>
+</body>
+</html>
