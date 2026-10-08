@@ -1,58 +1,45 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>RELIC — The Lost World | Founder Build 1.0</title>
-<style>
-:root{--glass:rgba(10,16,18,.72);--line:rgba(255,255,255,.12);--gold:#e9c46a;--red:#e76f51;--green:#78c091}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}html,body{margin:0;width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:#182421;color:#fff;font-family:Inter,system-ui,Arial,sans-serif;touch-action:none}
-canvas{position:fixed;inset:0;display:block;touch-action:none}
-#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#3c5651,#111817 70%);text-align:center}
-.loadbox{width:min(88vw,440px);padding:28px;border:1px solid var(--line);border-radius:22px;background:rgba(5,10,10,.72);backdrop-filter:blur(12px)}
-.logo{font-size:34px;font-weight:900;letter-spacing:7px}.sub{opacity:.65;margin-top:6px}.bar{height:5px;background:#293735;border-radius:9px;margin:22px 0 10px;overflow:hidden}.bar i{display:block;height:100%;width:40%;background:var(--gold);animation:load 1.2s infinite}@keyframes load{50%{width:85%}100%{width:40%}}
-#error{display:none;color:#ffd7cf;text-align:left;font-size:13px;line-height:1.5;margin-top:15px;padding:12px;border:1px solid #a64c3b;border-radius:12px;background:#351b18}
-#hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:none}
-.top{position:absolute;left:14px;right:14px;top:max(12px,env(safe-area-inset-top));display:flex;gap:8px;align-items:flex-start}
-.panel{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(8px);border-radius:14px;box-shadow:0 8px 30px #0005}
-.stats{padding:9px 11px;min-width:205px}.name{font-weight:800;font-size:13px}.meter{height:7px;background:#27302e;border-radius:8px;overflow:hidden;margin-top:6px}.meter b{display:block;height:100%;width:100%;background:var(--red)}.xp b{background:#5e9bd6}.nums{font-size:11px;opacity:.78;margin-top:5px}
-.quest{margin-left:auto;padding:10px 12px;width:min(310px,42vw);font-size:12px}.quest strong{color:var(--gold)}.quest p{margin:5px 0 0;line-height:1.35}
-.actions{position:absolute;right:14px;top:74px;display:flex;gap:7px;pointer-events:auto}.btn{border:1px solid var(--line);background:var(--glass);color:white;border-radius:12px;padding:9px 11px;font-weight:700}.btn:active{transform:scale(.96)}
-.bottom{position:absolute;left:14px;right:14px;bottom:max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end}
-.help{padding:8px 10px;font-size:11px;opacity:.8}.toast{position:absolute;left:50%;bottom:105px;transform:translateX(-50%);padding:10px 14px;border-radius:12px;background:rgba(0,0,0,.78);font-size:12px;opacity:0;transition:.2s}
-.toast.show{opacity:1}
-#menu{display:none;position:fixed;inset:0;z-index:30;place-items:center;background:#0008;pointer-events:auto}.modal{width:min(92vw,520px);max-height:82vh;overflow:auto;padding:18px}.modal h2{margin:0 0 12px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
-#joy{display:none;position:absolute;left:22px;bottom:34px;width:116px;height:116px;border-radius:50%;background:#ffffff10;border:1px solid #ffffff22;pointer-events:auto}.stick{position:absolute;width:54px;height:54px;left:31px;top:31px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff35}
-.touchbtn{display:none;position:absolute;width:62px;height:62px;border-radius:50%;background:#ffffff16;border:1px solid #ffffff30;color:#fff;font-size:23px;font-weight:900;pointer-events:auto}.attack{right:24px;bottom:42px}.dodge{right:98px;bottom:112px}.interact{right:24px;bottom:120px;width:52px;height:52px;font-size:17px}.potion{right:90px;bottom:45px;width:52px;height:52px;font-size:18px}
-@media (max-width:800px),(pointer:coarse){.quest{width:48vw}.actions .btn{padding:8px 9px}.help{display:none}#joy,.touchbtn{display:block}}
-@media (max-width:520px){.stats{min-width:170px}.quest{position:absolute;top:66px;right:0;width:68vw}.actions{top:150px}.actions .btn{font-size:11px}.stats .nums{font-size:10px}}
-
-/* ---------- Founder Build 1.0 polish ---------- */
-.zone{padding:8px 11px;min-width:145px;text-align:right;margin-left:auto}
-.zone span{display:block;font-size:11px;font-weight:900;letter-spacing:1.5px;color:var(--gold)}
-.zone small{display:block;font-size:9px;opacity:.55;margin-top:2px}
-#minimap{position:absolute;right:14px;bottom:64px;width:118px;height:118px;border-radius:50%;overflow:hidden;background:
- radial-gradient(circle,#344b43 0 2px,transparent 3px),
- linear-gradient(135deg,#1a2825,#263b34);opacity:.9}
-#minimap:before{content:"";position:absolute;inset:9px;border:1px solid #ffffff22;border-radius:50%}
-#mapPlayer{position:absolute;width:8px;height:8px;border-radius:50%;background:#e9c46a;box-shadow:0 0 9px #e9c46a;left:55px;top:55px;transform:translate(-50%,-50%);z-index:2}
-.mapGate{position:absolute;width:9px;height:9px;border-radius:2px;background:#e76f51;left:54px;top:13px;box-shadow:0 0 8px #e76f51}
-.mapCamp{position:absolute;width:8px;height:8px;border-radius:50%;background:#78c091;left:54px;bottom:15px}
-#bossbar{display:none;position:absolute;left:50%;top:80px;transform:translateX(-50%);width:min(440px,62vw);padding:8px 12px;text-align:center}
-.bossname{font-size:10px;font-weight:900;letter-spacing:2px;color:#ffb29f;margin-bottom:5px}
-.bossmeter{height:8px;background:#241719;border-radius:8px;overflow:hidden}
-.bossmeter b{display:block;height:100%;width:100%;background:#d9574a;transition:width .15s}
-@media(max-width:520px){
- #minimap{width:92px;height:92px;bottom:58px;right:10px}
- #mapPlayer{left:43px;top:43px}.mapGate{left:42px}.mapCamp{left:42px}
- #bossbar{top:214px;width:78vw}
- .zone{display:none}
-}
-</style>
+<meta name="theme-color" content="#172421">
+<title>RELIC — The Lost World</title>
+<link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
+
+<div id="mainmenu"><div class="menuCard">
+<div class="menuLogo">RELIC</div><div class="menuSub">THE LOST WORLD · FINAL TEST BUILD</div>
+<div class="menuButtons">
+<button class="menuBtn primary" id="startGame">ENTER THE LOST WORLD</button>
+<button class="menuBtn" id="continueGame">CONTINUE</button>
+<button class="menuBtn" id="openEquip">CHARACTER</button>
+<button class="menuBtn" id="openSkills">SKILLS</button>
+<button class="menuBtn" id="openShop">OUTPOST SHOP</button>
+<button class="menuBtn" id="resetFromMenu">NEW GAME</button>
+</div><div class="menuFooter">Telegram Mini App ready · Offline test economy</div></div></div>
+<div id="notify"></div>
+<div id="dialog"><div class="dialogCard"><div class="dialogName" id="dialogName">NPC</div><div class="dialogText" id="dialogText"></div><div class="dialogChoices" id="dialogChoices"></div></div></div>
+<div id="equipment"><div class="panel modal"><h2>CHARACTER</h2><div class="eqgrid">
+<div class="slot"><small>WEAPON</small><b id="eqWeapon">Seeker Blade</b></div><div class="slot"><small>ARMOR</small><b id="eqArmor">Wanderer Gear</b></div>
+<div class="slot"><small>LEVEL</small><b id="eqLevel">1</b></div><div class="slot"><small>ATTACK</small><b id="eqAttack">12</b></div>
+<div class="slot"><small>RELIC POWER</small><b id="eqRelic">0</b></div><div class="slot"><small>POTIONS</small><b id="eqPotions">2</b></div>
+</div><p id="statsMini" style="font-size:10px;opacity:.6"></p><button class="btn" id="closeEquip">Close</button></div></div>
+<div id="shop"><div class="panel modal"><h2>OUTPOST SHOP</h2>
+<div class="shopItem"><span>🧪 Healing Potion<br><small>Restore 35 HP</small></span><button id="buyPotion">25 Gold</button></div>
+<div class="shopItem"><span>🗡 Iron Edge<br><small>Permanent +5 ATK</small></span><button id="buySword">180 Gold</button></div>
+<div class="shopItem"><span>🛡 Hunter Armor<br><small>Permanent +20 HP</small></span><button id="buyArmor">220 Gold</button></div>
+<div class="shopItem"><span>💠 Relic Fragment<br><small>+1 Relic Power</small></span><button id="buyRelic">100 Gold</button></div>
+<button class="btn" id="closeShop">Close</button></div></div>
+<div id="skills"><div class="panel modal"><h2>SKILL TREE</h2>
+<div class="skillRow"><span>⚔ Hunter's Edge<br><small>+3 ATK</small></span><button id="skillAtk">Upgrade</button></div>
+<div class="skillRow"><span>❤️ Vitality<br><small>+15 Max HP</small></span><button id="skillHp">Upgrade</button></div>
+<div class="skillRow"><span>💨 Swift Step<br><small>+8% movement speed</small></span><button id="skillSpeed">Upgrade</button></div>
+<p style="font-size:11px;opacity:.6">Skill Points: <b id="skillPoints">0</b></p><button class="btn" id="closeSkills">Close</button></div></div>
+
 <div id="loading"><div class="loadbox">
-  <div class="logo">RELIC</div><div class="sub">THE LOST WORLD · FOUNDER BUILD 1.0</div>
+  <div class="logo">RELIC</div><div class="sub">THE LOST WORLD · FINAL TEST BUILD 1.0</div>
   <div class="bar"><i></i></div><div id="loadtxt">Initializing world…</div>
   <div id="error"></div>
 </div></div>
@@ -68,7 +55,7 @@ canvas{position:fixed;inset:0;display:block;touch-action:none}
     </div>
     <div class="panel quest"><strong id="qtitle">THE FIRST RELIC</strong><p id="qtext">Speak with Mara at the Outpost.</p></div>
   </div>
-  <div class="actions"><button class="btn" id="inv">🎒 Inventory</button><button class="btn" id="fog">🌫 Fog</button><button class="btn" id="reset">↻ Reset</button></div>
+  <div class="actions"><button class="btn" id="inv">🎒 Inventory</button><button class="btn" id="char">👤 Character</button><button class="btn" id="shopBtn">🪙 Shop</button><button class="btn" id="fog">🌫 Fog</button><button class="btn" id="reset">↻ Reset</button></div>
   <div class="bottom">
       <div class="panel help">WASD / arrows · drag camera · E interact · Space attack · Shift dodge · I inventory</div>
       <div class="panel zone"><span id="zoneName">THE WILD</span><small id="zoneSub">Explore the forgotten frontier</small></div>
@@ -93,440 +80,11 @@ canvas{position:fixed;inset:0;display:block;touch-action:none}
     <div class="row"><span>🛡 Armor</span><b id="iarmor">Wanderer Gear</b></div>
     <div class="row"><span>✨ Relic Power</span><b id="ipower">0</b></div>
     <div class="row"><span>📜 Discoveries</span><b id="idiscoveries">0</b></div>
-  <p style="opacity:.7;font-size:12px">Founder Build 1.0. Economy is still off-chain/local. No real-money or blockchain transactions are connected.</p>
+  <p style="opacity:.7;font-size:12px">FINAL TEST BUILD 1.0. Economy is still off-chain/local. No real-money or blockchain transactions are connected.</p>
   <button class="btn" id="close">Close</button>
 </div></div>
 
-<script>
-(() => {
-'use strict';
-const $=id=>document.getElementById(id);
-const loading=$('loading'), hud=$('hud'), loadtxt=$('loadtxt'), err=$('error');
 
-function showError(msg){
-  err.style.display='block';
-  err.textContent=msg;
-  loadtxt.textContent='Startup failed';
-}
-window.addEventListener('error', e => {
-  if(e.target && e.target!==window) return; // resource load errors handled by loader
-  showError('Game error: '+(e.message||'Unknown error'));
-});
-window.addEventListener('unhandledrejection', e => {
-  showError('Game startup error: '+(e.reason?.message||e.reason||'Unknown error'));
-});
-
-/* ---------- Script loader with fallbacks (FIX: Three.js was never loaded) ---------- */
-function loadScript(src,ms=9000){
-  return new Promise((res,rej)=>{
-    const s=document.createElement('script');
-    const t=setTimeout(()=>{s.remove();rej(new Error('timeout '+src))},ms);
-    s.src=src;
-    s.onload=()=>{clearTimeout(t);res()};
-    s.onerror=()=>{clearTimeout(t);s.remove();rej(new Error('failed '+src))};
-    document.head.appendChild(s);
-  });
-}
-async function loadFirst(list){
-  for(const u of list){ try{ await loadScript(u); if(window.THREE) return true; }catch(e){} }
-  return false;
-}
-const THREE_SOURCES=[
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js',
-  'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js',
-  'https://unpkg.com/three@0.158.0/build/three.min.js'
-];
-
-/* ---------- Telegram ---------- */
-function telegramSetup(){
-  const tg=window.Telegram?.WebApp;
-  if(!tg) return {tg:null,user:null};
-  try{
-    tg.ready(); tg.expand();
-    tg.setHeaderColor?.('#172421'); tg.setBackgroundColor?.('#172421');
-    tg.disableVerticalSwipes?.();   // FIX: swipe-down while dragging camera closed the mini app
-    const u=tg.initDataUnsafe?.user;
-    if(u) $('tgname').textContent='· '+(u.first_name||u.username||'PLAYER');
-    return {tg,user:u||null};
-  }catch(e){return {tg,user:null}}
-}
-
-function start(TG){
-  if(!window.THREE) throw new Error('Three.js did not load. Check internet/CDN access (cdnjs / jsdelivr / unpkg).');
-  const THREE=window.THREE;
-  const testCanvas=document.createElement('canvas');
-  if(!(testCanvas.getContext('webgl2')||testCanvas.getContext('webgl'))) throw new Error('WebGL is not available in this browser/WebView.');
-
-  const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x667a7d);
-  scene.fog=new THREE.FogExp2(0x667a7d,.018);
-
-  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-  renderer.setSize(innerWidth,innerHeight);
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.05;
-  document.body.appendChild(renderer.domElement);
-
-  const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.1,240);
-  camera.position.set(0,4,-4);
-  const clock=new THREE.Clock();
-
-  scene.add(new THREE.HemisphereLight(0xc9e2e6,0x16211d,1.8));
-  const sun=new THREE.DirectionalLight(0xdce7dd,1.15); sun.position.set(-30,55,20); scene.add(sun);
-
-  const state={
-    hp:100,xp:0,lvl:1,atk:12,gold:120,shards:0,wood:0,iron:0,crystal:0,
-    // quest: 0 talk Mara, 1 gather, 2 reach gate, 3 kill guardian, 4 return to Mara, 5 done
-    quest:0,questProgress:0,fog:true,dead:false,invOpen:false,dungeon:false,
-    weapon:'Seeker Blade',saveKey:'relic_tg_founder_10'
-  };
-  const save=()=>{try{
-      localStorage.setItem(state.saveKey,JSON.stringify({...state,invOpen:false,dead:false,discovered:[...discovered]}))
-    }catch(e){}};
-  const load=()=>{try{const x=JSON.parse(localStorage.getItem(state.saveKey)||'null'); if(x) Object.assign(state,x); state.dead=false;state.invOpen=false;state.dungeon=false;state.hp=Math.max(1,state.hp)}catch(e){}};
-  load();
-  state.armor=state.armor||'Wanderer Gear';state.relicPower=state.relicPower||0;state.discoveries=state.discoveries||0;state.kills=state.kills||0;state.potions=state.potions||2;
-  scene.fog.density=.018;
-
-  // shared materials/geometries (performance fix for mobile)
-  const matCache=new Map();
-  function mat(c,r=1){const k=c+'_'+r;if(!matCache.has(k))matCache.set(k,new THREE.MeshStandardMaterial({color:c,roughness:r}));return matCache.get(k)}
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),mat(0x30463d)); ground.rotation.x=-Math.PI/2; scene.add(ground);
-  const river=new THREE.Mesh(new THREE.PlaneGeometry(15,220),new THREE.MeshStandardMaterial({color:0x294d55,transparent:true,opacity:.82,roughness:.2}));
-  river.rotation.x=-Math.PI/2; river.position.x=-48; river.position.y=.02; scene.add(river);
-
-  const world=new THREE.Group(); scene.add(world);
-  function box(x,y,z,s,c,parent=world){const m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.position.set(x,y,z);parent.add(m);return m}
-  const trunkGeo=new THREE.CylinderGeometry(.16,.22,1.9,7), leafGeo=new THREE.ConeGeometry(.85,2.1,8), rockGeo=new THREE.DodecahedronGeometry(.55,0);
-  function tree(x,z,scale=1,parent=world){
-    const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);
-    const t=new THREE.Mesh(trunkGeo,mat(0x40362c));t.position.y=.95;g.add(t);
-    const l=new THREE.Mesh(leafGeo,mat(0x263e31));l.position.y=2.25;g.add(l);
-    parent.add(g);
-  }
-  function rock(x,z,s=1,parent=world){
-    const r=new THREE.Mesh(rockGeo,mat(0x535b57));r.scale.setScalar(s);r.position.set(x,.35*s,z);parent.add(r);
-  }
-  for(let i=0;i<130;i++){
-    const x=(Math.random()-.5)*205,z=(Math.random()-.5)*205;
-    if(Math.abs(x+48)<10) continue;
-    if(Math.hypot(x,z+18)<18) continue;
-    if(Math.hypot(x,z+11)<6) continue;
-    if(Math.abs(x)<8 && z<-58) continue; // keep dungeon gate clear
-    tree(x,z,.7+Math.random()*.8);
-  }
-  for(let i=0;i<55;i++) rock((Math.random()-.5)*190,(Math.random()-.5)*190,.6+Math.random()*.8);
-
-  // Outpost
-  const outpost=new THREE.Group(); outpost.position.set(0,0,-18); scene.add(outpost);
-  box(0,.15,0,[15,.3,15],0x3b3c35,outpost);
-  box(-4,1,-3,[5,2,5],0x5b5141,outpost); box(-4,2.25,-3,[5.5,.5,5.5],0x322e2a,outpost);
-  box(4,1,1,[4,2,4],0x665744,outpost); box(4,2.2,1,[4.5,.4,4.5],0x322e2a,outpost);
-  const fire=new THREE.PointLight(0xffb35c,2.2,12); fire.position.set(1,1.6,-1); outpost.add(fire);
-  const flame=new THREE.Mesh(new THREE.SphereGeometry(.35,10,8),new THREE.MeshBasicMaterial({color:0xff9a3d})); flame.position.set(1,1,-1); outpost.add(flame);
-
-  function npc(name,x,z,c){
-    const g=new THREE.Group();g.position.set(x,0,z);
-    const b=new THREE.Mesh(new THREE.CapsuleGeometry(.4,.9,5,8),mat(c));b.position.y=.75;g.add(b);
-    const h=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),mat(0xb78d72));h.position.y=1.65;g.add(h);
-    g.userData={npc:true,name};scene.add(g);return g;
-  }
-  const mara=npc('Mara',-3,-13,0x5e7380), toren=npc('Toren',4,-13,0x865d4e);
-
-  // Hero (front of model faces -Z, cape on the back)
-  const hero=new THREE.Group(); hero.position.set(0,0,-8); scene.add(hero);
-  const hb=new THREE.Mesh(new THREE.CapsuleGeometry(.46,1.0,5,8),mat(0x69747c));hb.position.y=.72;hero.add(hb);
-  const hh=new THREE.Mesh(new THREE.SphereGeometry(.34,10,8),mat(0xb78d72));hh.position.y=1.65;hero.add(hh);
-  const cape=new THREE.Mesh(new THREE.BoxGeometry(.78,.9,.12),mat(0x252d31));cape.position.set(0,.75,.4);hero.add(cape);
-  const sword=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,1.0),mat(0xcfd8dc,.4));sword.position.set(.55,.9,-.6);hero.add(sword);
-  const face=new THREE.Vector3(0,0,-1);
-
-  // Resources
-  const resources=[];
-  function resource(type,x,z){
-    const colors={wood:0x6b4a2f,iron:0x69716e,crystal:0x65b7c4};
-    const g=new THREE.Group();g.position.set(x,.25,z);
-    const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.48,0),mat(colors[type]));g.add(m);
-    g.userData={resource:true,type,dead:false};scene.add(g);resources.push(g);
-  }
-  resource('wood',-8,-8);resource('wood',-12,-2);resource('wood',8,-4);resource('wood',14,-14);
-  resource('iron',-18,-10);resource('iron',-22,-1);resource('iron',12,-10);
-  resource('crystal',-27,-35);resource('crystal',-35,-40);resource('crystal',18,-35);
-  // Hidden discoveries: reaching these locations permanently records the find.
-  const discoverySpots=[
-    {id:'old_shrine',name:'Old Shrine',x:30,z:-24},
-    {id:'broken_watch',name:'Broken Watchtower',x:-38,z:-18},
-    {id:'river_stone',name:'River Stone',x:-47,z:28}
-  ];
-  const discoveryMeshes=[];
-  for(const d of discoverySpots){
-    const m=new THREE.Mesh(new THREE.TorusGeometry(.48,.08,7,18),mat(0xc6a85a));
-    m.position.set(d.x,.35,d.z);m.rotation.x=Math.PI/2;m.userData.discovery=d;scene.add(m);discoveryMeshes.push(m);
-  }
-  const potionSpots=[{x:17,z:-20},{x:-19,z:-29}];
-  const potionMeshes=[];
-  for(const p of potionSpots){
-    const m=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.42,8),mat(0x8a4f74));
-    m.position.set(p.x,.3,p.z);m.userData.potion=true;scene.add(m);potionMeshes.push(m);
-  }
-
-
-  // Dungeon
-  const dungeon=new THREE.Group(); dungeon.position.set(0,0,-72); scene.add(dungeon);
-  box(0,2,0,[18,4,2],0x272b29,dungeon);box(-9,1,0,[2,2,2],0x252725,dungeon);box(9,1,0,[2,2,2],0x252725,dungeon);
-  const gate=new THREE.Mesh(new THREE.BoxGeometry(8,4,.5),mat(0x101313));gate.position.set(0,2,0);dungeon.add(gate);
-  const rune=new THREE.Mesh(new THREE.TorusGeometry(1.2,.12,8,20),mat(0x5bb6b0));rune.position.set(0,2,1.2);dungeon.add(rune);
-  const GATE=new THREE.Vector3(0,0,-70);
-
-  const enemies=[];
-  const isDeepZone=z=>z<-45;
-  function enemy(type,x,z,hp=30){
-    const colors={beast:0x805447,ranged:0x566f78,tank:0x56524b,boss:0x7e3030};
-    const g=new THREE.Group();g.position.set(x,0,z);
-    const s=type==='boss'?1.45:type==='tank'?1.15:1;
-    const body=new THREE.Mesh(new THREE.CapsuleGeometry(.42*s,.85*s,5,8),mat(colors[type]));body.position.y=.7*s;g.add(body);
-    const head=new THREE.Mesh(new THREE.SphereGeometry(.31*s,10,8),mat(0x8d7769));head.position.y=1.5*s;g.add(head);
-    g.userData={enemy:true,type,hp,maxHp:hp,dead:false,cd:0,home:new THREE.Vector3(x,0,z)};
-    g.visible=!isDeepZone(z);scene.add(g);enemies.push(g);return g;
-  }
-  enemy('beast',-13,-28,35);enemy('beast',13,-32,35);enemy('ranged',20,-47,28);enemy('tank',-17,-51,75);
-  enemy('boss',0,-65,150);
-
-  /* ---------- Input ---------- */
-  const keys={};let yaw=0,pitch=.38,attackLock=0,dodgeLock=0,dragId=null,lastX=0,lastY=0;
-  addEventListener('keydown',e=>{
-    const k=e.key.toLowerCase();keys[k]=true;
-    if(e.key===' '){e.preventDefault();attack()}
-    if(k==='e'||k==='f')interact();
-    if(k==='i')toggleInv();
-    if(k==='q')usePotion();
-    if(e.key==='Shift')dodge();
-  });
-  addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-  addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
-  // FIX: track pointerId so joystick finger doesn't corrupt camera drag (multi-touch)
-  renderer.domElement.addEventListener('pointerdown',e=>{if(dragId===null){dragId=e.pointerId;lastX=e.clientX;lastY=e.clientY}});
-  addEventListener('pointermove',e=>{
-    if(e.pointerId!==dragId)return;
-    yaw-=(e.clientX-lastX)*.006;pitch=Math.max(.12,Math.min(.85,pitch-(e.clientY-lastY)*.004));lastX=e.clientX;lastY=e.clientY;
-  });
-  const endDrag=e=>{if(e.pointerId===dragId)dragId=null};
-  addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);
-
-  function attack(){
-    if(attackLock>0||state.dead)return;attackLock=.42;
-    sword.rotation.x=-1.25;
-    let hits=0;
-    for(const e of enemies){
-      if(e.userData.dead||!e.visible)continue;
-      const d=hero.position.distanceTo(e.position);
-      if(d<3.35){
-        const to=e.position.clone().sub(hero.position).setY(0).normalize();
-        if(face.dot(to)>-.15){
-          const crit=Math.random()<.12;
-          const dmg=state.atk*(crit?1.8:1);
-          e.userData.hp-=dmg; hits++;
-          toast((crit?'CRITICAL! ':'')+'-'+Math.round(dmg));
-          if(e.userData.hp<=0)kill(e);
-        }
-      }
-    }
-    if(!hits) toast('Miss');
-  }
-  function kill(e){
-    const boss=e.userData.type==='boss';
-    e.userData.dead=true;e.visible=false;state.xp+=boss?100:25;state.gold+=boss?150:15;
-    if(boss){
-      state.shards+=3;state.relicPower+=10;state.quest=Math.max(state.quest,4);
-      state.atk+=6;toast('GUARDIAN DEFEATED · +3 Shards · +10 Relic Power · +6 ATK');
-    }
-    else {
-      state.kills++;
-      const drop=Math.random();
-      if(drop<.35){state.gold+=20;toast('Enemy defeated · +XP · +20 Gold');}
-      else if(drop<.55){state.shards+=1;toast('Enemy defeated · +XP · +1 Relic Shard');}
-      else toast('Enemy defeated · +XP');
-    }
-    levelCheck();save();
-  }
-  function levelCheck(){
-    let leveled=false;
-    while(state.xp>=state.lvl*50){state.xp-=state.lvl*50;state.lvl++;state.atk+=4;state.hp=100;leveled=true}
-    if(leveled)toast('LEVEL UP! LV '+state.lvl);
-  }
-  function interact(){
-    if(state.dead)return;
-    if(!state.dungeon && hero.position.distanceTo(GATE)<6){
-      state.dungeon=true;state.quest=Math.max(state.quest,3);
-      hero.position.set(0,0,-58);
-      enemies.forEach(e=>{if(!e.userData.dead&&isDeepZone(e.userData.home.z))e.visible=true});
-      scene.fog.density=state.fog?.028:.006;toast('ENTERED THE FIRST DUNGEON');save();return;
-    }
-    let near=null,nd=999;
-    for(const n of [mara,toren]){const d=hero.position.distanceTo(n.position);if(d<3.5&&d<nd){near=n;nd=d}}
-    for(const r of resources){if(!r.userData.dead){const d=hero.position.distanceTo(r.position);if(d<2.8&&d<nd){near=r;nd=d}}}
-    if(!near)return;
-    if(near.userData.resource){
-      near.userData.dead=true;near.visible=false;state[near.userData.type]++;toast('Collected '+near.userData.type.toUpperCase());
-      save();return;
-    }
-    if(near.userData.npc){
-      if(near.userData.name==='Mara'){
-        if(state.quest===0){state.quest=1;toast('Mara: Gather 3 Wood and 2 Iron.');}
-        else if(state.quest===4){state.quest=5;state.gold+=250;state.relicPower+=5;toast('Mara: You found the First Relic. +250 Gold · +5 Relic Power');}
-        else if(state.quest>=5)toast('Mara: More lands await in the next alpha.');
-        else toast('Mara: Keep going, Seeker.');
-      } else {
-        if(state.quest===1&&state.wood>=3&&state.iron>=2){state.wood-=3;state.iron-=2;state.atk+=4;state.quest=2;toast('Toren upgraded your blade +4 ATK');}
-        else if(state.quest===0)toast('Toren: Speak with Mara first.');
-        else if(state.quest===1)toast('Toren: Bring me 3 Wood and 2 Iron.');
-        else toast('Toren: Good luck out there.');
-      } save();
-    }
-  }
-  function usePotion(){
-    if(state.dead||state.potions<=0||state.hp>=100)return;
-    state.potions--;state.hp=Math.min(100,state.hp+35);toast('Healing Potion +35 HP');save();
-  }
-  function dodge(){if(dodgeLock>0||state.dead)return;dodgeLock=.7;hero.position.addScaledVector(face,3);hero.position.y=0}
-  function toggleInv(){state.invOpen=!state.invOpen;$('menu').style.display=state.invOpen?'grid':'none';updateUI()}
-  function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1700)}
-
-  // Touch controls
-  let joyVec={x:0,y:0},joyId=null;
-  const joy=$('joy'),stick=joy.querySelector('.stick');
-  joy.addEventListener('pointerdown',e=>{e.preventDefault();joyId=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}moveJoy(e)});
-  joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)moveJoy(e)});
-  const endJoy=e=>{if(e.pointerId!==joyId)return;joyId=null;joyVec={x:0,y:0};stick.style.transform='translate(0,0)'};
-  joy.addEventListener('pointerup',endJoy);joy.addEventListener('pointercancel',endJoy);joy.addEventListener('lostpointercapture',endJoy);
-  function moveJoy(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/42,y=(e.clientY-cy)/42;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}joyVec={x,y};stick.style.transform=`translate(${x*28}px,${y*28}px)`}
-  $('attack').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
-  $('dodge').addEventListener('pointerdown',e=>{e.preventDefault();dodge()});
-  $('interact').addEventListener('pointerdown',e=>{e.preventDefault();interact()}); $('potion').addEventListener('pointerdown',e=>{e.preventDefault();usePotion()});
-  $('inv').onclick=toggleInv;$('close').onclick=toggleInv;
-  $('fog').onclick=()=>{state.fog=!state.fog;scene.fog.density=state.fog?(state.dungeon?.028:.018):.006;toast(state.fog?'Dense fog':'Light fog');};
-  $('reset').onclick=()=>{try{localStorage.removeItem(state.saveKey)}catch(e){}location.reload()};
-
-  function updateUI(){
-    $('hp').textContent=Math.max(0,Math.round(state.hp));$('lvl').textContent=state.lvl;$('atk').textContent=state.atk;
-    $('xp').textContent=state.xp;$('xpn').textContent=state.lvl*50;$('gold').textContent=state.gold;$('shards').textContent=state.shards;
-    $('hpbar').style.width=Math.max(0,state.hp)+'%';$('xpbar').style.width=Math.min(100,state.xp/(state.lvl*50)*100)+'%';
-    $('iwood').textContent=state.wood;$('iiron').textContent=state.iron;$('icrystal').textContent=state.crystal;$('ishards').textContent=state.shards;$('igold').textContent=state.gold;
-    const qs=[
-      ['THE FIRST RELIC','Speak with Mara at the Outpost.'],
-      ['GATHERING','Collect '+Math.min(state.wood,3)+'/3 Wood and '+Math.min(state.iron,2)+'/2 Iron. Then speak with Toren.'],
-      ['THE DUNGEON','Reach the ancient gate in the north and press E.'],
-      ['THE GUARDIAN','Defeat the Dungeon Guardian.'],
-      ['RETURN','Return to Mara at the Outpost.'],
-      ['COMPLETE','You found the First Relic. More in the next alpha!']
-    ][Math.min(state.quest,5)];
-    $('qtitle').textContent=qs[0];$('qtext').textContent=qs[1];
-    $('iweapon').textContent=state.weapon+' · ATK '+state.atk;
-    $('iarmor').textContent=state.armor;
-    $('ipower').textContent=state.relicPower;
-    $('idiscoveries').textContent=state.discoveries;
-    const inDungeon=state.dungeon;
-    $('zoneName').textContent=inDungeon?'ANCIENT DUNGEON':'THE WILD';
-    $('zoneSub').textContent=inDungeon?'Guardian chamber · no turning back':'Explore the forgotten frontier';
-    const boss=enemies.find(e=>e.userData.type==='boss');
-    if(boss && inDungeon && !boss.userData.dead){
-      $('bossbar').style.display='block';
-      $('bosshp').style.width=Math.max(0,boss.userData.hp/boss.userData.maxHp*100)+'%';
-    }else $('bossbar').style.display='none';
-    const mp=document.getElementById('mapPlayer');
-    const mx=Math.max(10,Math.min(108,59+hero.position.x*.55));
-    const my=Math.max(10,Math.min(108,59+hero.position.z*.42));
-    mp.style.left=mx+'px';mp.style.top=my+'px';
-  }
-
-  const _fwd=new THREE.Vector3(),_right=new THREE.Vector3(),_mv=new THREE.Vector3();
-  function playerMove(dt){
-    let f=(keys.w||keys.arrowup?1:0)+(keys.s||keys.arrowdown?-1:0);
-    let str=(keys.d||keys.arrowright?1:0)+(keys.a||keys.arrowleft?-1:0);
-    f+=-joyVec.y;str+=joyVec.x;
-    const len=Math.hypot(f,str);
-    if(len>.05){
-      if(len>1){f/=len;str/=len}
-      // FIX: camera sits at +(sin,cos)*dist and looks toward the hero, so forward is the NEGATIVE of that
-      _fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
-      _right.set(Math.cos(yaw),0,-Math.sin(yaw));
-      _mv.set(0,0,0).addScaledVector(_fwd,f).addScaledVector(_right,str);
-      const speed=5.2;
-      hero.position.addScaledVector(_mv,speed*dt);
-      if(_mv.lengthSq()>1e-4){face.copy(_mv).normalize();}
-    }
-    hero.rotation.y=Math.atan2(-face.x,-face.z);
-    hero.position.x=Math.max(-95,Math.min(95,hero.position.x));hero.position.z=Math.max(-100,Math.min(95,hero.position.z));
-    sword.rotation.x+=(0-sword.rotation.x)*Math.min(1,dt*12);
-  }
-  function enemyAI(dt){
-    for(const e of enemies){
-      if(e.userData.dead||!e.visible)continue;
-      const d=e.position.distanceTo(hero.position);e.userData.cd=Math.max(0,e.userData.cd-dt);
-      if(d<14&&d>2.1){
-        const v=hero.position.clone().sub(e.position);v.y=0;v.normalize();
-        e.position.addScaledVector(v,(e.userData.type==='tank'?1.2:1.7)*dt);
-        e.rotation.y=Math.atan2(-v.x,-v.z);
-      }
-      if(d<2.2&&e.userData.cd<=0){state.hp-=e.userData.type==='boss'?15:e.userData.type==='tank'?8:5;e.userData.cd=1.1;toast('You took damage!')}
-    }
-  }
-  function respawn(){
-    state.hp=100;hero.position.set(0,0,-8);state.dead=false;state.dungeon=false;
-    scene.fog.density=state.fog?.018:.006;
-    enemies.forEach(e=>{
-      const u=e.userData;if(u.dead)return;
-      e.position.copy(u.home);u.hp=u.maxHp;u.cd=0;e.visible=!isDeepZone(u.home.z);
-    });
-    toast('Respawned at Outpost');
-  }
-  const _t=new THREE.Vector3(),_o=new THREE.Vector3(),_d=new THREE.Vector3();
-  function cameraFollow(){
-    _t.copy(hero.position);_t.y+=1.1;
-    _o.set(Math.sin(yaw)*7*Math.cos(pitch),3.0+Math.sin(pitch)*2,Math.cos(yaw)*7*Math.cos(pitch));
-    _d.copy(_t).add(_o);
-    camera.position.lerp(_d,.12);camera.lookAt(_t);
-  }
-  let uiT=0;
-  function animate(){
-    requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
-    attackLock=Math.max(0,attackLock-dt);dodgeLock=Math.max(0,dodgeLock-dt);
-    if(!state.dead){
-      playerMove(dt);enemyAI(dt);
-      if(state.hp<=0){state.dead=true;toast('You fell…');setTimeout(respawn,900)}
-    }
-    flame.scale.setScalar(1+Math.sin(performance.now()*.012)*.12);
-    cameraFollow();
-    uiT+=dt;if(uiT>.12){uiT=0;updateUI()}
-    renderer.render(scene,camera);
-  }
-  function onResize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
-  addEventListener('resize',onResize);
-  TG.tg?.onEvent?.('viewportChanged',onResize);
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showError('WebGL context lost. Please reopen the game.')});
-  updateUI();
-  loading.style.display='none';hud.style.display='block';
-  toast(TG.user?'Welcome to RELIC, '+(TG.user.first_name||'Seeker')+'!':'RELIC Founder Build ready');
-  animate();
-}
-
-/* ---------- Boot ---------- */
-(async()=>{
-  try{
-    loadtxt.textContent='Loading 3D engine…';
-    const tgP=loadScript('https://telegram.org/js/telegram-web-app.js',4000).catch(()=>{});
-    const ok=await loadFirst(THREE_SOURCES);
-    await tgP;
-    if(!ok) throw new Error('Could not download Three.js from any CDN. Check the internet connection (or VPN/filtering) and reopen.');
-    const TG=telegramSetup();
-    loadtxt.textContent='Building world…';
-    await new Promise(r=>setTimeout(r,30));
-    start(TG);
-  }catch(e){showError(e.message||String(e))}
-})();
-})();
-</script>
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>

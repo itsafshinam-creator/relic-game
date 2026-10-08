@@ -1,0 +1,2 @@
+import { ENEMIES } from '../data/enemies.js';
+export function updateEnemyAI(dt,{enemies,hero,state,toast}){for(const e of enemies){if(e.userData.dead||!e.visible)continue;const d=e.position.distanceTo(hero.position);e.userData.cd=Math.max(0,e.userData.cd-dt);const cfg=ENEMIES[e.userData.type];if(d<14&&d>2.1){const v=hero.position.clone().sub(e.position);v.y=0;v.normalize();e.position.addScaledVector(v,cfg.speed*dt);e.rotation.y=Math.atan2(-v.x,-v.z);}if(d<2.2&&e.userData.cd<=0){state.hp-=cfg.damage;e.userData.cd=1.1;toast('You took damage!');}}}
