@@ -7,11 +7,12 @@ export default defineConfig(() => {
   return {
     base: './', // relative paths so the build works on GitHub Pages under any repo name
     plugins: [react(), tailwindcss()],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      },
-    },
+           resolve: {
+         extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+         alias: {
+           '@': path.resolve(__dirname, '.'),
+         },
+       },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
