@@ -1,90 +1,21 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#172421">
-<title>RELIC — The Lost World</title>
-<link rel="stylesheet" href="./css/style.css">
-</head>
-<body>
-
-<div id="mainmenu"><div class="menuCard">
-<div class="menuLogo">RELIC</div><div class="menuSub">THE LOST WORLD · FINAL TEST BUILD</div>
-<div class="menuButtons">
-<button class="menuBtn primary" id="startGame">ENTER THE LOST WORLD</button>
-<button class="menuBtn" id="continueGame">CONTINUE</button>
-<button class="menuBtn" id="openEquip">CHARACTER</button>
-<button class="menuBtn" id="openSkills">SKILLS</button>
-<button class="menuBtn" id="openShop">OUTPOST SHOP</button>
-<button class="menuBtn" id="resetFromMenu">NEW GAME</button>
-</div><div class="menuFooter">Telegram Mini App ready · Offline test economy</div></div></div>
-<div id="notify"></div>
-<div id="dialog"><div class="dialogCard"><div class="dialogName" id="dialogName">NPC</div><div class="dialogText" id="dialogText"></div><div class="dialogChoices" id="dialogChoices"></div></div></div>
-<div id="equipment"><div class="panel modal"><h2>CHARACTER</h2><div class="eqgrid">
-<div class="slot"><small>WEAPON</small><b id="eqWeapon">Seeker Blade</b></div><div class="slot"><small>ARMOR</small><b id="eqArmor">Wanderer Gear</b></div>
-<div class="slot"><small>LEVEL</small><b id="eqLevel">1</b></div><div class="slot"><small>ATTACK</small><b id="eqAttack">12</b></div>
-<div class="slot"><small>RELIC POWER</small><b id="eqRelic">0</b></div><div class="slot"><small>POTIONS</small><b id="eqPotions">2</b></div>
-</div><p id="statsMini" style="font-size:10px;opacity:.6"></p><button class="btn" id="closeEquip">Close</button></div></div>
-<div id="shop"><div class="panel modal"><h2>OUTPOST SHOP</h2>
-<div class="shopItem"><span>🧪 Healing Potion<br><small>Restore 35 HP</small></span><button id="buyPotion">25 Gold</button></div>
-<div class="shopItem"><span>🗡 Iron Edge<br><small>Permanent +5 ATK</small></span><button id="buySword">180 Gold</button></div>
-<div class="shopItem"><span>🛡 Hunter Armor<br><small>Permanent +20 HP</small></span><button id="buyArmor">220 Gold</button></div>
-<div class="shopItem"><span>💠 Relic Fragment<br><small>+1 Relic Power</small></span><button id="buyRelic">100 Gold</button></div>
-<button class="btn" id="closeShop">Close</button></div></div>
-<div id="skills"><div class="panel modal"><h2>SKILL TREE</h2>
-<div class="skillRow"><span>⚔ Hunter's Edge<br><small>+3 ATK</small></span><button id="skillAtk">Upgrade</button></div>
-<div class="skillRow"><span>❤️ Vitality<br><small>+15 Max HP</small></span><button id="skillHp">Upgrade</button></div>
-<div class="skillRow"><span>💨 Swift Step<br><small>+8% movement speed</small></span><button id="skillSpeed">Upgrade</button></div>
-<p style="font-size:11px;opacity:.6">Skill Points: <b id="skillPoints">0</b></p><button class="btn" id="closeSkills">Close</button></div></div>
-
-<div id="loading"><div class="loadbox">
-  <div class="logo">RELIC</div><div class="sub">THE LOST WORLD · FINAL TEST BUILD 1.0</div>
-  <div class="bar"><i></i></div><div id="loadtxt">Initializing world…</div>
-  <div id="error"></div>
-</div></div>
-
-<div id="hud">
-  <div class="top">
-    <div class="panel stats">
-      <div class="name">SEEKER <span id="tgname"></span></div>
-      <div class="meter"><b id="hpbar"></b></div>
-      <div class="nums">HP <span id="hp">100</span>/100 · LV <span id="lvl">1</span> · ATK <span id="atk">12</span></div>
-      <div class="meter xp"><b id="xpbar" style="width:0%"></b></div>
-      <div class="nums">XP <span id="xp">0</span>/<span id="xpn">50</span> · 🪙 <span id="gold">120</span> · 💠 <span id="shards">0</span></div>
-    </div>
-    <div class="panel quest"><strong id="qtitle">THE FIRST RELIC</strong><p id="qtext">Speak with Mara at the Outpost.</p></div>
-  </div>
-  <div class="actions"><button class="btn" id="inv">🎒 Inventory</button><button class="btn" id="char">👤 Character</button><button class="btn" id="shopBtn">🪙 Shop</button><button class="btn" id="fog">🌫 Fog</button><button class="btn" id="reset">↻ Reset</button></div>
-  <div class="bottom">
-      <div class="panel help">WASD / arrows · drag camera · E interact · Space attack · Shift dodge · I inventory</div>
-      <div class="panel zone"><span id="zoneName">THE WILD</span><small id="zoneSub">Explore the forgotten frontier</small></div>
-    </div>
-    <div id="minimap" class="panel"><div id="mapPlayer"></div><div class="mapGate"></div><div class="mapCamp"></div></div>
-    <div id="bossbar" class="panel"><div class="bossname">DUNGEON GUARDIAN</div><div class="bossmeter"><b id="bosshp"></b></div></div>
-  <div id="toast" class="toast"></div>
-  <div id="joy"><div class="stick"></div></div>
-  <button class="touchbtn attack" id="attack">⚔</button>
-  <button class="touchbtn dodge" id="dodge">↗</button>
-  <button class="touchbtn interact" id="interact">E</button><button class="touchbtn potion" id="potion">🧪</button>
-</div>
-
-<div id="menu"><div class="panel modal">
-  <h2>RELIC INVENTORY</h2>
-  <div class="row"><span>🪵 Wood</span><b id="iwood">0</b></div>
-  <div class="row"><span>⛓ Iron</span><b id="iiron">0</b></div>
-  <div class="row"><span>💎 Crystal</span><b id="icrystal">0</b></div>
-  <div class="row"><span>💠 Relic Shards</span><b id="ishards">0</b></div>
-  <div class="row"><span>🪙 Gold</span><b id="igold">0</b></div>
-  <div class="row"><span>⚔ Weapon</span><b id="iweapon">Seeker Blade</b></div>
-    <div class="row"><span>🛡 Armor</span><b id="iarmor">Wanderer Gear</b></div>
-    <div class="row"><span>✨ Relic Power</span><b id="ipower">0</b></div>
-    <div class="row"><span>📜 Discoveries</span><b id="idiscoveries">0</b></div>
-  <p style="opacity:.7;font-size:12px">FINAL TEST BUILD 1.0. Economy is still off-chain/local. No real-money or blockchain transactions are connected.</p>
-  <button class="btn" id="close">Close</button>
-</div></div>
-
-
-<script type="module" src="./src/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RELIC: The Lost World</title>
+    <meta name="description" content="An open-world action-adventure RPG set in the forgotten realm. Play as the Seeker, explore ancient temples, craft gear, battle dungeon guardians, and uncover the lost relic." />
+    <meta property="og:title" content="RELIC: The Lost World" />
+    <meta property="og:description" content="An open-world action-adventure RPG set in the forgotten realm. Play as the Seeker, explore ancient temples, craft gear, battle dungeon guardians, and uncover the lost relic." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
+

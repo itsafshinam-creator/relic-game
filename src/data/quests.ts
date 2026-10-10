@@ -1,0 +1,48 @@
+import { Quest } from '../types/game';
+
+export const INITIAL_QUESTS: Quest[] = [
+  {
+    id: 'quest_explore',
+    titleEn: 'Scout the Brick Realm',
+    titleFa: 'Scout the Brick Realm',
+    descEn: 'Collect 5 Golden Bricks scattered along the path',
+    descFa: 'Collect 5 Golden Bricks scattered along the path',
+    targetCount: 5,
+    currentCount: 0,
+    rewardBricks: 3,
+    completed: false,
+  },
+  {
+    id: 'quest_archery',
+    titleEn: 'Marksman Practice',
+    titleFa: 'Marksman Practice',
+    descEn: 'Hit 3 archery targets on the practice field',
+    descFa: 'Hit 3 archery targets on the practice field',
+    targetCount: 3,
+    currentCount: 0,
+    rewardBricks: 5,
+    completed: false,
+  },
+  {
+    id: 'quest_goblins',
+    titleEn: 'Defend the Outpost',
+    titleFa: 'Defend the Outpost',
+    descEn: 'Defeat 3 forest goblins invading the glade',
+    descFa: 'Defeat 3 forest goblins invading the glade',
+    targetCount: 3,
+    currentCount: 0,
+    rewardBricks: 8,
+    completed: false,
+  },
+  {
+    id: 'quest_golem',
+    titleEn: 'Ancient Ruin Guardian',
+    titleFa: 'Ancient Ruin Guardian',
+    descEn: 'Vanquish the massive Ancient Brick Golem in the northern sanctum',
+    descFa: 'Vanquish the massive Ancient Brick Golem in the northern sanctum',
+    targetCount: 1,
+    currentCount: 0,
+    rewardBricks: 15,
+    completed: false,
+  },
+];

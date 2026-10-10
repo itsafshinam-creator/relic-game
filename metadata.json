@@ -1,0 +1,6 @@
+{
+  "name": "RELIC: The Lost World",
+  "description": "An open-world action-adventure RPG set in the forgotten realm. Play as the Seeker, explore ancient temples, craft gear, battle dungeon guardians, and uncover the lost relic.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
