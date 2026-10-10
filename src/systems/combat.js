@@ -1,7 +1,0 @@
-import { GAME_CONFIG } from '../core/config.js';
-import { ENEMIES } from '../data/enemies.js';
-export function createCombat({THREE,hero,sword,state,enemies,toast,save,levelCheck}){
-  function attack(){if(state.dead||createCombat.attackLock>0)return;createCombat.attackLock=GAME_CONFIG.player.attackCooldown;sword.rotation.x=-1.25;let hits=0;for(const e of enemies){if(e.userData.dead||!e.visible)continue;const d=hero.position.distanceTo(e.position);if(d<3.35){const to=e.position.clone().sub(hero.position).setY(0).normalize();if(createCombat.face.dot(to)>-.15){const crit=Math.random()<GAME_CONFIG.player.critChance,dmg=state.atk*(crit?GAME_CONFIG.player.critMultiplier:1);e.userData.hp-=dmg;hits++;toast((crit?'CRITICAL! ':'')+'-'+Math.round(dmg));if(e.userData.hp<=0)kill(e);}}}if(!hits)toast('Miss');}
-  function kill(e){const boss=e.userData.type==='boss';e.userData.dead=true;e.visible=false;state.xp+=boss?100:25;state.gold+=boss?150:15;if(boss){state.shards+=3;state.relicPower+=10;state.quest=Math.max(state.quest,4);state.atk+=6;toast('GUARDIAN DEFEATED · +3 Shards · +10 Relic Power · +6 ATK');}else{state.kills++;const drop=Math.random();if(drop<.35){state.gold+=20;toast('Enemy defeated · +XP · +20 Gold');}else if(drop<.55){state.shards++;toast('Enemy defeated · +XP · +1 Relic Shard');}else toast('Enemy defeated · +XP');}levelCheck();save();}
-  createCombat.attackLock=0;createCombat.face=new THREE.Vector3(0,0,-1);return {attack,kill};
-}
